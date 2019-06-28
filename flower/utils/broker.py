@@ -6,10 +6,7 @@ import socket
 import logging
 import numbers
 
-from tornado import ioloop
-from tornado import gen
-from tornado import httpclient
-
+import requests
 
 try:
     from urllib.parse import urlparse, urljoin, quote, unquote
@@ -47,7 +44,6 @@ class BrokerBase(object):
 class RabbitMQ(BrokerBase):
     def __init__(self, broker_url, http_api, io_loop=None, **kwargs):
         super(RabbitMQ, self).__init__(broker_url)
-        self.io_loop = io_loop or ioloop.IOLoop.instance()
 
         self.host = self.host or 'localhost'
         self.port = self.port or 15672
@@ -68,29 +64,28 @@ class RabbitMQ(BrokerBase):
 
         self.http_api = http_api
 
-    @gen.coroutine
     def queues(self, names):
         url = urljoin(self.http_api, 'queues/' + self.vhost)
         api_url = urlparse(self.http_api)
         username = unquote(api_url.username or '') or self.username
         password = unquote(api_url.password or '') or self.password
 
-        http_client = httpclient.AsyncHTTPClient()
         try:
-            response = yield http_client.fetch(
-                url, auth_username=username, auth_password=password,
-                validate_cert=False)
-        except (socket.error, httpclient.HTTPError) as e:
+            response = requests.get(
+                url,
+                auth_username=username,
+                auth_password=password,
+                validate_cert=False
+            )
+        except (socket.error, requests.HTTPError) as e:
             logger.error("RabbitMQ management API call failed: %s", e)
-            raise gen.Return([])
-        finally:
-            http_client.close()
+            raise
 
-        if response.code == 200:
-            info = json.loads(response.body.decode())
-            raise gen.Return([x for x in info if x['name'] in names])
+        if response.status_code == 200:
+            info = response.json()
+            return [x for x in info if x['name'] in names]
         else:
-            response.rethrow()
+            raise Exception('Status({0.status_code})'.format(response))
 
     @classmethod
     def validate_http_api(cls, http_api):
@@ -121,7 +116,6 @@ class RedisBase(BrokerBase):
             raise ValueError('Priority not in priority steps')
         return '{0}{1}{2}'.format(*((queue, self.SEP, pri) if pri else (queue, '', '')))
 
-    @gen.coroutine
     def queues(self, names):
         queue_stats = []
         for name in names:
@@ -130,7 +124,7 @@ class RedisBase(BrokerBase):
                 'name': name,
                 'messages': sum([self.redis.llen(x) for x in priority_names])
             })
-        raise gen.Return(queue_stats)
+        raise queue_stats
 
 
 class Redis(RedisBase):
@@ -180,24 +174,3 @@ class Broker(object):
         else:
             raise NotImplementedError
 
-
-@gen.coroutine
-def main():
-    broker_url = sys.argv[1] if len(sys.argv) > 1 else 'amqp://'
-    queue_name = sys.argv[2] if len(sys.argv) > 2 else 'celery'
-    if len(sys.argv) > 3:
-        http_api = sys.argv[3]
-    else:
-        http_api = 'http://guest:guest@localhost:15672/api/'
-
-    broker = Broker(broker_url, http_api=http_api)
-    queues = yield broker.queues([queue_name])
-    if queues:
-        print(queues)
-    io_loop.stop()
-
-
-if __name__ == "__main__":
-    io_loop = ioloop.IOLoop.instance()
-    io_loop.add_callback(main)
-    io_loop.start()

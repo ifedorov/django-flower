@@ -1,14 +1,15 @@
 from __future__ import absolute_import
 
-import time
-import logging
 import collections
+import logging
+import time
 
-from tornado import web
-from tornado import gen
+from django.contrib.auth.decorators import login_required
+from django.http import Http404, JsonResponse, HttpResponse
+from django.utils.decorators import method_decorator
 
+from flower.exceptions import HTTPError
 from ..views import BaseHandler
-
 
 logger = logging.getLogger(__name__)
 
@@ -18,13 +19,11 @@ class ControlHandler(BaseHandler):
                        'active', 'reserved', 'revoked', 'conf')
     worker_cache = collections.defaultdict(dict)
 
-    @gen.coroutine
     def update_cache(self, workername=None):
         yield self.update_workers(workername=workername,
                                   app=self.application)
 
     @classmethod
-    @gen.coroutine
     def update_workers(cls, app, workername=None):
         logger.debug("Updating %s worker's cache...", workername or 'all')
 
@@ -53,7 +52,7 @@ class ControlHandler(BaseHandler):
         return workername and workername in self.worker_cache
 
     def error_reason(self, workername, response):
-        "extracts error message from response"
+        """extracts error message from response"""
         for r in response:
             try:
                 return r[workername].get('error', 'Unknown reason')
@@ -72,7 +71,7 @@ class ControlHandler(BaseHandler):
 
 
 class WorkerShutDown(ControlHandler):
-    @web.authenticated
+
     def post(self, workername):
         """
 Shut down a worker
@@ -103,15 +102,16 @@ Shut down a worker
 :statuscode 404: unknown worker
         """
         if not self.is_worker(workername):
-            raise web.HTTPError(404, "Unknown worker '%s'" % workername)
+            raise Http404("Unknown worker '%s'" % workername)
 
         logger.info("Shutting down '%s' worker", workername)
         self.capp.control.broadcast('shutdown', destination=[workername])
-        self.write(dict(message="Shutting down!"))
+        return JsonResponse(dict(message="Shutting down!"))
 
 
 class WorkerPoolRestart(ControlHandler):
-    @web.authenticated
+
+    @method_decorator(login_required)
     def post(self, workername):
         """
 Restart worker's pool
@@ -143,25 +143,24 @@ Restart worker's pool
 :statuscode 404: unknown worker
         """
         if not self.is_worker(workername):
-            raise web.HTTPError(404, "Unknown worker '%s'" % workername)
+            raise Http404("Unknown worker '%s'" % workername)
 
         logger.info("Restarting '%s' worker's pool", workername)
         response = self.capp.control.broadcast(
             'pool_restart', arguments={'reload': False},
             destination=[workername], reply=True)
         if response and 'ok' in response[0][workername]:
-            self.write(dict(
-                message="Restarting '%s' worker's pool" % workername))
+            return JsonResponse(dict(message="Restarting '%s' worker's pool" % workername))
         else:
             logger.error(response)
-            self.set_status(403)
-            self.write("Failed to restart the '%s' pool: %s" % (
-                workername, self.error_reason(workername, response)
-            ))
+            return HttpResponse("Failed to restart the '%s' pool: %s" % (
+                workername, self.error_reason(workername, response)),
+                                status=403)
 
 
 class WorkerPoolGrow(ControlHandler):
-    @web.authenticated
+
+    @method_decorator(login_required)
     def post(self, workername):
         """
 Grow worker's pool
@@ -195,7 +194,7 @@ Grow worker's pool
         """
 
         if not self.is_worker(workername):
-            raise web.HTTPError(404, "Unknown worker '%s'" % workername)
+            raise Http404("Unknown worker '%s'" % workername)
 
         n = self.get_argument('n', default=1, type=int)
 
@@ -203,17 +202,17 @@ Grow worker's pool
         response = self.capp.control.pool_grow(
             n=n, reply=True, destination=[workername])
         if response and 'ok' in response[0][workername]:
-            self.write(dict(
-                message="Growing '%s' worker's pool by %s" % (workername, n)))
+            return JsonResponse(dict(message="Growing '%s' worker's pool by %s" % (workername, n)))
         else:
             logger.error(response)
-            self.set_status(403)
-            self.write("Failed to grow '%s' worker's pool: %s" % (
-                workername, self.error_reason(workername, response)))
+            return HttpResponse("Failed to grow '%s' worker's pool: %s" % (
+                workername, self.error_reason(workername, response)),
+                                status=403)
 
 
 class WorkerPoolShrink(ControlHandler):
-    @web.authenticated
+
+    @method_decorator(login_required)
     def post(self, workername):
         """
 Shrink worker's pool
@@ -247,7 +246,7 @@ Shrink worker's pool
         """
 
         if not self.is_worker(workername):
-            raise web.HTTPError(404, "Unknown worker '%s'" % workername)
+            raise Http404("Unknown worker '%s'" % workername)
 
         n = self.get_argument('n', default=1, type=int)
 
@@ -255,18 +254,19 @@ Shrink worker's pool
         response = self.capp.control.pool_shrink(
             n=n, reply=True, destination=[workername])
         if response and 'ok' in response[0][workername]:
-            self.write(dict(message="Shrinking '%s' worker's pool by %s" % (
+            return JsonResponse(dict(
+                message="Shrinking '%s' worker's pool by %s" % (
                             workername, n)))
         else:
             logger.error(response)
-            self.set_status(403)
-            self.write("Failed to shrink '%s' worker's pool: %s" % (
+            return HttpResponse("Failed to shrink '%s' worker's pool: %s" % (
                 workername, self.error_reason(workername, response)
-            ))
+            ), status=403)
 
 
 class WorkerPoolAutoscale(ControlHandler):
-    @web.authenticated
+
+    @method_decorator(login_required)
     def post(self, workername):
         """
 Autoscale worker pool
@@ -302,7 +302,7 @@ Autoscale worker pool
         """
 
         if not self.is_worker(workername):
-            raise web.HTTPError(404, "Unknown worker '%s'" % workername)
+            raise Http404("Unknown worker '%s'" % workername)
 
         min = self.get_argument('min', type=int)
         max = self.get_argument('max', type=int)
@@ -313,19 +313,19 @@ Autoscale worker pool
             'autoscale', arguments={'min': min, 'max': max},
             destination=[workername], reply=True)
         if response and 'ok' in response[0][workername]:
-            self.write(dict(message="Autoscaling '%s' worker "
-                                    "(min=%s, max=%s)" % (
-                                        workername, min, max)))
+            return JsonResponse(dict(
+                message="Autoscaling '%s' worker (min=%s, max=%s)" % (workername, min, max)
+            ))
         else:
             logger.error(response)
-            self.set_status(403)
-            self.write("Failed to autoscale '%s' worker: %s" % (
+            return HttpResponse("Failed to autoscale '%s' worker: %s" % (
                 workername, self.error_reason(workername, response)
-            ))
+            ), status=403)
 
 
 class WorkerQueueAddConsumer(ControlHandler):
-    @web.authenticated
+
+    @method_decorator(login_required)
     def post(self, workername):
         """
 Start consuming from a queue
@@ -359,7 +359,7 @@ Start consuming from a queue
 :statuscode 404: unknown worker
         """
         if not self.is_worker(workername):
-            raise web.HTTPError(404, "Unknown worker '%s'" % workername)
+            raise Http404("Unknown worker '%s'" % workername)
 
         queue = self.get_argument('queue')
 
@@ -369,17 +369,17 @@ Start consuming from a queue
             'add_consumer', arguments={'queue': queue},
             destination=[workername], reply=True)
         if response and 'ok' in response[0][workername]:
-            self.write(dict(message=response[0][workername]['ok']))
+            return JsonResponse(dict(message=response[0][workername]['ok']))
         else:
             logger.error(response)
-            self.set_status(403)
-            self.write("Failed to add '%s' consumer to '%s' worker: %s" % (
+            return HttpResponse("Failed to add '%s' consumer to '%s' worker: %s" % (
                 queue, workername, self.error_reason(workername, response)
-            ))
+            ), status=403)
 
 
 class WorkerQueueCancelConsumer(ControlHandler):
-    @web.authenticated
+
+    @method_decorator(login_required)
     def post(self, workername):
         """
 Stop consuming from a queue
@@ -413,7 +413,7 @@ Stop consuming from a queue
 :statuscode 404: unknown worker
         """
         if not self.is_worker(workername):
-            raise web.HTTPError(404, "Unknown worker '%s'" % workername)
+            raise Http404("Unknown worker '%s'" % workername)
 
         queue = self.get_argument('queue')
 
@@ -423,18 +423,18 @@ Stop consuming from a queue
             'cancel_consumer', arguments={'queue': queue},
             destination=[workername], reply=True)
         if response and 'ok' in response[0][workername]:
-            self.write(dict(message=response[0][workername]['ok']))
+            return JsonResponse(dict(message=response[0][workername]['ok']))
         else:
             logger.error(response)
-            self.set_status(403)
-            self.write(
+            return HttpResponse(
                 "Failed to cancel '%s' consumer from '%s' worker: %s" % (
                     queue, workername, self.error_reason(workername, response)
-                ))
+                ), status=403)
 
 
 class TaskRevoke(ControlHandler):
-    @web.authenticated
+
+    @method_decorator(login_required)
     def post(self, taskid):
         """
 Revoke a task
@@ -470,11 +470,12 @@ Revoke a task
         terminate = self.get_argument('terminate', default=False, type=bool)
         signal = self.get_argument('signal', default='SIGTERM', type=str)
         self.capp.control.revoke(taskid, terminate=terminate, signal=signal)
-        self.write(dict(message="Revoked '%s'" % taskid))
+        return JsonResponse(dict(message="Revoked '%s'" % taskid))
 
 
 class TaskTimout(ControlHandler):
-    @web.authenticated
+
+    @method_decorator(login_required)
     def post(self, taskname):
         """
 Change soft and hard time limits for a task
@@ -513,9 +514,9 @@ Change soft and hard time limits for a task
         soft = self.get_argument('soft', default=None, type=float)
 
         if taskname not in self.capp.tasks:
-            raise web.HTTPError(404, "Unknown task '%s'" % taskname)
+            raise Http404("Unknown task '%s'" % taskname)
         if workername is not None and not self.is_worker(workername):
-            raise web.HTTPError(404, "Unknown worker '%s'" % workername)
+            raise Http404("Unknown worker '%s'" % workername)
 
         logger.info("Setting timeouts for '%s' task (%s, %s)",
                     taskname, soft, hard)
@@ -525,16 +526,16 @@ Change soft and hard time limits for a task
             destination=destination)
 
         if response and 'ok' in response[0][workername]:
-            self.write(dict(message=response[0][workername]['ok']))
+            return JsonResponse(dict(message=response[0][workername]['ok']))
         else:
             logger.error(response)
-            self.set_status(403)
-            self.write("Failed to set timeouts: '%s'" %
-                       self.error_reason(taskname, response))
+            return HttpResponse("Failed to set timeouts: '%s'" %
+                   self.error_reason(taskname, response), status=403)
 
 
 class TaskRateLimit(ControlHandler):
-    @web.authenticated
+
+    @method_decorator(login_required)
     def post(self, taskname):
         """
 Change rate limit for a task
@@ -572,9 +573,9 @@ Change rate limit for a task
         ratelimit = self.get_argument('ratelimit')
 
         if taskname not in self.capp.tasks:
-            raise web.HTTPError(404, "Unknown task '%s'" % taskname)
+            raise HTTPError(404, "Unknown task '%s'" % taskname)
         if workername is not None and not self.is_worker(workername):
-            raise web.HTTPError(404, "Unknown worker '%s'" % workername)
+            raise HTTPError(404, "Unknown worker '%s'" % workername)
 
         logger.info("Setting '%s' rate limit for '%s' task",
                     ratelimit, taskname)
@@ -585,6 +586,4 @@ Change rate limit for a task
             self.write(dict(message=response[0][workername]['ok']))
         else:
             logger.error(response)
-            self.set_status(403)
-            self.write("Failed to set rate limit: '%s'" %
-                       self.error_reason(taskname, response))
+            HttpResponse("Failed to set rate limit: '%s'" % self.error_reason(taskname, response))

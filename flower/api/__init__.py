@@ -1,10 +1,10 @@
 from __future__ import absolute_import
 
-import tornado.websocket
 
-
-class BaseWebSocketHandler(tornado.websocket.WebSocketHandler):
+class BaseWebSocketHandler(object):
     # listeners = [], should be created in derived class
+
+    listeners = []
 
     def open(self):
         listeners = self.listeners

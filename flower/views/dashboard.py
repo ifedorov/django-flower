@@ -1,53 +1,74 @@
 from __future__ import absolute_import
 
 import logging
-
 from collections import OrderedDict
 from functools import partial
 
-from tornado import web
-from tornado import gen
-from tornado import websocket
-from tornado.ioloop import PeriodicCallback
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.utils.decorators import method_decorator
+from django.views.generic import View
 
-from ..views import BaseHandler
 from ..api.workers import ListWorkers
-
+from ..views import BaseHandler
 
 logger = logging.getLogger(__name__)
 
 
 class DashboardView(BaseHandler):
-    @web.authenticated
-    @gen.coroutine
-    def get(self):
+
+    @method_decorator(login_required)
+    def get(self, request, *args, **kwargs):
         refresh = self.get_argument('refresh', default=False, type=bool)
         json = self.get_argument('json', default=False, type=bool)
 
-        app = self.application
-        events = app.events.state
-        broker = app.capp.connection().as_uri()
+        app = self.settings.app
+
+        state = app.events.State()
+        broker = app.connection().as_uri()
 
         if refresh:
             try:
-                yield ListWorkers.update_workers(app=app)
+                return JsonResponse(list(ListWorkers.update_workers(app=app)))
             except Exception as e:
                 logger.exception('Failed to update workers: %s', e)
 
         workers = {}
-        for name, values in events.counter.items():
-            if name not in events.workers:
-                continue
-            worker = events.workers[name]
-            info = dict(values)
-            info.update(self._as_dict(worker))
-            info.update(status=worker.alive)
-            workers[name] = info
+        for task in state.tasks:
+            info = task.as_dict()
+            info.update(self._as_dict(task.worker))
+            info.update(status=task.worker.alive)
+            workers[task.name] = info
 
         if json:
-            self.write(dict(data=list(workers.values())))
+            response = JsonResponse(dict(data=list(workers.values())))
         else:
-            self.render("dashboard.html", workers=workers, broker=broker)
+            def lazy_alive_workers():
+                return sum(map(lambda x: x.get('active') or 0, workers.values()))
+
+            def lazy_task_received():
+                return sum(map(lambda x: x.get('task-received') or 0, workers.values()))
+
+            def lazy_task_failed():
+                return sum(map(lambda x: x.get('task-failed') or 0, workers.values()))
+
+            def lazy_task_succeeded():
+                return sum(map(lambda x: x.get('task-succeeded') or 0, workers.values()))
+
+            def lazy_task_retried():
+                return sum(map(lambda x: x.get('task-retried') or 0, workers.values()))
+
+            context = dict(
+                alive_workers=lazy_alive_workers,
+                task_received=lazy_task_received,
+                task_failed=lazy_task_failed,
+                task_succeeded=lazy_task_succeeded,
+                task_retried=lazy_task_retried,
+                broker=broker,
+                workers=workers
+            )
+            response = self.render("flower/dashboard.html", context)
+        return response
 
     @classmethod
     def _as_dict(cls, worker):
@@ -71,15 +92,15 @@ class DashboardView(BaseHandler):
         return dict(_keys())
 
 
-class DashboardUpdateHandler(websocket.WebSocketHandler):
+class DashboardUpdateHandler(View):
     listeners = []
     periodic_callback = None
     workers = None
     page_update_interval = 2000
 
     def open(self):
-        app = self.application
-        if not app.options.auto_refresh:
+        app = self.app_options
+        if not app.auto_refresh:
             self.write_message({})
             return
 

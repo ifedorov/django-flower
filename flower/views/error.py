@@ -1,13 +1,13 @@
 from __future__ import absolute_import
 
-import tornado.web
+from django.http import Http404
 
 from ..views import BaseHandler
 
 
 class NotFoundErrorHandler(BaseHandler):
     def get(self):
-        raise tornado.web.HTTPError(404)
+        raise Http404
 
     def post(self):
-        raise tornado.web.HTTPError(404)
+        raise Http404

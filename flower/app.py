@@ -14,7 +14,7 @@ from tornado.httpserver import HTTPServer
 from .api import control
 from .urls import handlers
 from .events import Events
-from .options import default_options
+from .options import options
 
 
 logger = logging.getLogger(__name__)
@@ -28,7 +28,7 @@ class Flower(tornado.web.Application):
                  io_loop=None, **kwargs):
         kwargs.update(handlers=handlers)
         super(Flower, self).__init__(**kwargs)
-        self.options = options or default_options
+        self.options = options or options
         self.io_loop = io_loop or ioloop.IOLoop.instance()
         self.ssl_options = kwargs.get('ssl_options', None)
 

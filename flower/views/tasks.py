@@ -1,15 +1,18 @@
 from __future__ import absolute_import
 
-from functools import total_ordering
 import copy
 import logging
+from functools import total_ordering
+
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
+
+from flower.exceptions import HTTPError
 
 try:
     from itertools import imap
 except ImportError:
     imap = map
-
-from tornado import web
 
 from ..views import BaseHandler
 from ..utils.tasks import iter_tasks, get_task_by_id, as_dict
@@ -18,14 +21,15 @@ logger = logging.getLogger(__name__)
 
 
 class TaskView(BaseHandler):
-    @web.authenticated
+
+    @method_decorator(login_required)
     def get(self, task_id):
-        task = get_task_by_id(self.application.events, task_id)
+        task = get_task_by_id(self.settings.app.events, task_id)
 
         if task is None:
-            raise web.HTTPError(404, "Unknown task '%s'" % task_id)
+            raise HTTPError(404, "Unknown task '%s'" % task_id)
 
-        self.render("task.html", task=task)
+        self.render("task.html", context={'task': task})
 
 
 @total_ordering
@@ -49,9 +53,10 @@ class Comparable(object):
 
 
 class TasksDataTable(BaseHandler):
-    @web.authenticated
+
+    @method_decorator(login_required)
     def get(self):
-        app = self.application
+        app = self.settings.app
         draw = self.get_argument('draw', type=int)
         start = self.get_argument('start', type=int)
         length = self.get_argument('length', type=int)
@@ -71,7 +76,6 @@ class TasksDataTable(BaseHandler):
         )
 
         filtered_tasks = []
-
         for task in sorted_tasks[start:start + length]:
             task_dict = as_dict(self.format_task(task)[1])
             if task_dict.get('worker'):
@@ -83,14 +87,13 @@ class TasksDataTable(BaseHandler):
                         recordsTotal=len(sorted_tasks),
                         recordsFiltered=len(sorted_tasks)))
 
-    @web.authenticated
+    @method_decorator(login_required)
     def post(self):
         return self.get()
 
     def format_task(self, args):
         uuid, task = args
-        custom_format_task = self.application.options.format_task
-
+        custom_format_task = self.settings.format_task
         if custom_format_task:
             try:
                 task = custom_format_task(copy.copy(task))
@@ -100,18 +103,16 @@ class TasksDataTable(BaseHandler):
 
 
 class TasksView(BaseHandler):
-    @web.authenticated
+
+    @method_decorator(login_required)
     def get(self):
-        app = self.application
-        capp = self.application.capp
-
+        app = self.settings.app
         time = 'natural-time' if app.options.natural_time else 'time'
-        if capp.conf.CELERY_TIMEZONE:
-            time += '-' + str(capp.conf.CELERY_TIMEZONE)
-
-        self.render(
-            "tasks.html",
+        if app.conf.CELERY_TIMEZONE:
+            time += '-' + str(app.conf.CELERY_TIMEZONE)
+        context = dict(
             tasks=[],
             columns=app.options.tasks_columns,
             time=time,
         )
+        return self.render("flower/tasks.html", context=context)
