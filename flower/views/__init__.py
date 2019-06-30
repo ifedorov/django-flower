@@ -37,7 +37,7 @@ class BaseHandler(View):
             if 'exc_info' in kwargs and\
                     kwargs['exc_info'][0] == Http404:
                     message = kwargs['exc_info'][1].log_message
-            response = self.render('flower/404.html', message=message)
+            response = self.render('flower/404.html', context={'message': message})
         elif status_code == 500:
             error_trace = ""
             for line in traceback.format_exception(*kwargs['exc_info']):
