@@ -20,3 +20,10 @@ class CeleryTask(models.Model):
     name = models.CharField("Name", max_length=512)
     state = models.CharField("State", max_length=32)
     worker = models.ForeignKey(CeleryWorker, verbose_name="Worker")
+
+    def as_dict(self):
+        dk = {}
+        for field in self._meta.get_fields():
+            dk[field.name] = getattr(self, field.name)
+        return dk
+

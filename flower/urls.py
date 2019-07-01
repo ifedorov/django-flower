@@ -4,9 +4,9 @@ from __future__ import absolute_import
 
 from django.conf.urls import url, include
 
-# from .api import events
+from .api import events
 from .api import control
-# from .api import tasks
+from .api import tasks
 from .api import workers
 # from .views import auth
 from .views import monitor
@@ -21,35 +21,36 @@ from .views.dashboard import DashboardView, DashboardUpdateHandler
 urlpatterns = [
     # App
     url(r"^$", DashboardView.as_view(), name='main'),
-    url(r"dashboard", DashboardView, name='dashboard'),
+    url(r"^dashboard/$", DashboardView, name='dashboard'),
     # url(r"worker/(.+)", WorkerView, name='worker'),
     # url(r"task/(.+)", TaskView, name='task'),
-    url(r"tasks", TasksView.as_view(), name='tasks'),
+    url(r"^tasks/$", TasksView.as_view(), name='tasks'),
     # url(r"tasks/datatable", TasksDataTable),
-    url(r"broker", BrokerView.as_view(), name='broker'),
+    url(r"^broker/$", BrokerView.as_view(), name='broker'),
     # # Worker API
-    url(r"api/workers", workers.ListWorkers.as_view()),
-    url(r"api/worker/shutdown/(.+)", control.WorkerShutDown.as_view()),
-    url(r"api/worker/pool/restart/(.+)", control.WorkerPoolRestart.as_view()),
-    url(r"api/worker/pool/grow/(.+)", control.WorkerPoolGrow.as_view()),
-    url(r"api/worker/pool/shrink/(.+)", control.WorkerPoolShrink.as_view()),
-    url(r"api/worker/pool/autoscale/(.+)", control.WorkerPoolAutoscale.as_view()),
-    url(r"api/worker/queue/add-consumer/(.+)", control.WorkerQueueAddConsumer.as_view()),
-    url(r"api/worker/queue/cancel-consumer/(.+)", control.WorkerQueueCancelConsumer.as_view()),
-    # # Task API
-    # url(r"api/tasks", tasks.ListTasks),
-    # url(r"api/task/types", tasks.ListTaskTypes),
-    # url(r"api/queues/length", tasks.GetQueueLengths),
-    # url(r"api/task/info/(.*)", tasks.TaskInfo),
-    # url(r"api/task/apply/(.+)", tasks.TaskApply),
-    # url(r"api/task/async-apply/(.+)", tasks.TaskAsyncApply),
-    # url(r"api/task/send-task/(.+)", tasks.TaskSend),
-    # url(r"api/task/result/(.+)", tasks.TaskResult),
-    # url(r"api/task/abort/(.+)", tasks.TaskAbort),
-    # url(r"api/task/timeout/(.+)", control.TaskTimout),
-    # url(r"api/task/rate-limit/(.+)", control.TaskRateLimit),
-    # url(r"api/task/revoke/(.+)", control.TaskRevoke),
-    # # Events WebSocket API
+    url(r"^api/workers/$", workers.ListWorkers.as_view()),
+    url(r"^api/worker/shutdown/(.+)/$", control.WorkerShutDown.as_view()),
+    url(r"^api/worker/pool/restart/(.+)/$", control.WorkerPoolRestart.as_view()),
+    url(r"^api/worker/pool/grow/(.+)/$", control.WorkerPoolGrow.as_view()),
+    url(r"^api/worker/pool/shrink/(.+)/$", control.WorkerPoolShrink.as_view()),
+    url(r"^api/worker/pool/autoscale/(.+)/$", control.WorkerPoolAutoscale.as_view()),
+    url(r"^api/worker/queue/add-consumer/(.+)/$", control.WorkerQueueAddConsumer.as_view()),
+    url(r"^api/worker/queue/cancel-consumer/(.+)/$", control.WorkerQueueCancelConsumer.as_view()),
+
+    # Task API
+    url(r"^api/tasks/$", tasks.ListTasks.as_view()),
+    url(r"^api/task/types/$", tasks.ListTaskTypes),
+    url(r"^api/queues/length/$", tasks.GetQueueLengths),
+    url(r"^api/task/info/(.*)/$", tasks.TaskInfo),
+    url(r"^api/task/apply/(.+)/$", tasks.TaskApply),
+    url(r"^api/task/async-apply/(.+)/$", tasks.TaskAsyncApply),
+    url(r"^api/task/send-task/(.+)/$", tasks.TaskSend),
+    url(r"^api/task/result/(.+)/$", tasks.TaskResult),
+    url(r"^api/task/abort/(.+)/$", tasks.TaskAbort),
+    url(r"^api/task/timeout/(.+)/$", control.TaskTimout),
+    url(r"^api/task/rate-limit/(.+)/$", control.TaskRateLimit),
+    url(r"^api/task/revoke/(.+)/$", control.TaskRevoke),
+    # Events WebSocket API
     # url(r"api/task/events/task-sent/(.*)", events.TaskSent),
     # url(r"api/task/events/task-received/(.*)", events.TaskReceived),
     # url(r"api/task/events/task-started/(.*)", events.TaskStarted),

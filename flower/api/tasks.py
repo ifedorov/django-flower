@@ -5,33 +5,35 @@ import logging
 
 from datetime import datetime
 
-from tornado import web
-from tornado import gen
-from tornado.ioloop import IOLoop
-from tornado.escape import json_decode
-from tornado.web import HTTPError
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
 
 from celery import states
 from celery.result import AsyncResult
 from celery.contrib.abortable import AbortableAsyncResult
 from celery.backends.base import DisabledBackend
 
+from flower.exceptions import HTTPError
 from ..utils import tasks
 from ..views import BaseHandler
 from ..utils.broker import Broker
 from ..api.control import ControlHandler
+import json
 
 
 logger = logging.getLogger(__name__)
 
 
 class BaseTaskHandler(BaseHandler):
+    DATE_FORMAT = '%Y-%m-%d %H:%M:%S.%f'
+
     def get_task_args(self):
         try:
             body = self.request.body
-            options = json_decode(body) if body else {}
+            options = json.loads(body) if body else {}
         except ValueError as e:
             raise HTTPError(400, str(e))
+
         args = options.pop('args', [])
         kwargs = options.pop('kwargs', {})
 
@@ -43,9 +45,6 @@ class BaseTaskHandler(BaseHandler):
     @staticmethod
     def backend_configured(result):
         return not isinstance(result.backend, DisabledBackend)
-
-    def write_error(self, status_code, **kwargs):
-        self.set_status(status_code)
 
     def update_response_result(self, response, result):
         if result.state == states.FAILURE:
@@ -68,7 +67,8 @@ class BaseTaskHandler(BaseHandler):
                 expires = datetime.strptime(expires, self.DATE_FORMAT)
             options['expires'] = expires
 
-    def safe_result(self, result):
+    @staticmethod
+    def safe_result(result):
         "returns json encodable result"
         try:
             json.dumps(result)
@@ -79,9 +79,9 @@ class BaseTaskHandler(BaseHandler):
 
 
 class TaskApply(BaseTaskHandler):
-    @web.authenticated
-    @gen.coroutine
-    def post(self, taskname):
+
+    @method_decorator(login_required)
+    def post(self, request, taskname):
         """
 Execute a task by name and wait results
 
@@ -138,9 +138,7 @@ Execute a task by name and wait results
         result = task.apply_async(args=args, kwargs=kwargs, **options)
         response = {'task-id': result.task_id}
 
-        response = yield IOLoop.current().run_in_executor(
-            None, self.wait_results, result, response)
-        self.write(response)
+        return self.write(response)
 
     def wait_results(self, result, response):
         # Wait until task finished and do not raise anything
@@ -155,8 +153,8 @@ Execute a task by name and wait results
 class TaskAsyncApply(BaseTaskHandler):
     DATE_FORMAT = '%Y-%m-%d %H:%M:%S.%f'
 
-    @web.authenticated
-    def post(self, taskname):
+    @method_decorator(login_required)
+    def post(self, request, taskname):
         """
 Execute a task
 
@@ -215,12 +213,13 @@ Execute a task
         response = {'task-id': result.task_id}
         if self.backend_configured(result):
             response.update(state=result.state)
-        self.write(response)
+        return self.write(response)
 
 
 class TaskSend(BaseTaskHandler):
-    @web.authenticated
-    def post(self, taskname):
+
+    @method_decorator(login_required)
+    def post(self, request, taskname):
         """
 Execute a task by name (doesn't require task sources)
 
@@ -267,12 +266,13 @@ Execute a task by name (doesn't require task sources)
         response = {'task-id': result.task_id}
         if self.backend_configured(result):
             response.update(state=result.state)
-        self.write(response)
+        return self.write(response)
 
 
 class TaskResult(BaseTaskHandler):
-    @web.authenticated
-    def get(self, taskid):
+
+    @method_decorator(login_required)
+    def get(self, request, taskid):
         """
 Get a task result
 
@@ -309,6 +309,7 @@ Get a task result
         result = AsyncResult(taskid)
         if not self.backend_configured(result):
             raise HTTPError(503)
+
         response = {'task-id': taskid, 'state': result.state}
 
         if timeout:
@@ -316,12 +317,14 @@ Get a task result
             self.update_response_result(response, result)
         elif result.ready():
             self.update_response_result(response, result)
-        self.write(response)
+
+        return self.write(response)
 
 
 class TaskAbort(BaseTaskHandler):
-    @web.authenticated
-    def post(self, taskid):
+
+    @method_decorator(login_required)
+    def post(self, request, taskid):
         """
 Abort a running task
 
@@ -357,13 +360,13 @@ Abort a running task
 
         result.abort()
 
-        self.write(dict(message="Aborted '%s'" % taskid))
+        return self.write(dict(message="Aborted '%s'" % taskid))
 
 
 class GetQueueLengths(BaseTaskHandler):
-    @web.authenticated
-    @gen.coroutine
-    def get(self):
+
+    @method_decorator(login_required)
+    def get(self, request):
         """
 Return length of all active queues
 
@@ -394,10 +397,10 @@ Return length of all active queues
 :statuscode 401: unauthorized request
 :statuscode 503: result backend is not configured
         """
-        app = self.application
+        app = self.capp
         broker_options = self.capp.conf.BROKER_TRANSPORT_OPTIONS
-
         http_api = None
+
         if app.transport == 'amqp' and app.options.broker_api:
             http_api = app.options.broker_api
 
@@ -410,13 +413,14 @@ Return length of all active queues
             queue_names = set([self.capp.conf.CELERY_DEFAULT_QUEUE]) |\
                         set([q.name for q in self.capp.conf.CELERY_QUEUES or [] if q.name])
 
-        queues = yield broker.queues(sorted(queue_names))
-        self.write({'active_queues': queues})
+        queues = broker.queues(sorted(queue_names))
+        return self.write({'active_queues': queues})
 
 
 class ListTasks(BaseTaskHandler):
-    @web.authenticated
-    def get(self):
+
+    @method_decorator(login_required)
+    def get(self, request):
         """
 List tasks
 
@@ -503,7 +507,7 @@ List tasks
 :statuscode 200: no error
 :statuscode 401: unauthorized request
         """
-        app = self.application
+        app = self.capp
         limit = self.get_argument('limit', None)
         worker = self.get_argument('workername', None)
         type = self.get_argument('taskname', None)
@@ -525,12 +529,14 @@ List tasks
             task = tasks.as_dict(task)
             task.pop('worker', None)
             result.append((task_id, task))
-        self.write(dict(result))
+
+        return self.write(dict(result))
 
 
 class ListTaskTypes(BaseTaskHandler):
-    @web.authenticated
-    def get(self):
+
+    @method_decorator(login_required)
+    def get(self, request, *args, **kwargs):
         """
 List (seen) task types
 
@@ -560,16 +566,16 @@ List (seen) task types
 :statuscode 200: no error
 :statuscode 401: unauthorized request
         """
-        seen_task_types = self.application.events.state.task_types()
+        seen_task_types = self.capp.events.state.task_types()
 
-        response = {}
-        response['task-types'] = seen_task_types
-        self.write(response)
+        response = {'task-types': seen_task_types}
+        return self.write(response)
 
 
 class TaskInfo(BaseTaskHandler):
-    @web.authenticated
-    def get(self, taskid):
+
+    @method_decorator(login_required)
+    def get(self, request, taskid):
         """
 Get a task info
 
@@ -625,7 +631,7 @@ Get a task info
 :statuscode 404: unknown task
         """
 
-        task = tasks.get_task_by_id(self.application.events, taskid)
+        task = tasks.get_task_by_id(taskid)
         if not task:
             raise HTTPError(404, "Unknown task '%s'" % taskid)
 
@@ -633,4 +639,4 @@ Get a task info
         if task.worker is not None:
             response['worker'] = task.worker.hostname
 
-        self.write(response)
+        return self.write(response)

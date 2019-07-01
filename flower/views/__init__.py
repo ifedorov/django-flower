@@ -9,6 +9,7 @@ from distutils.util import strtobool
 from django.conf import settings
 from django.http import Http404, JsonResponse, HttpResponse
 from django.shortcuts import render
+from django.utils.functional import cached_property
 from django.utils.six import string_types
 from django.views.generic import View
 
@@ -107,9 +108,9 @@ class BaseHandler(View):
                     arg, type.__name__))
         return arg
 
-    @property
+    @cached_property
     def capp(self):
-        "return Celery application object"
+        """return Celery application object"""
         return self.settings.app
 
     def reverse_url(self, *args):
