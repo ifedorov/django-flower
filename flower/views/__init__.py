@@ -25,6 +25,7 @@ class BaseHandler(View):
 
     def __init__(self, *args, **kwargs):
         super(BaseHandler, self).__init__(*args, **kwargs)
+        self.url_prefix = reverse("flower:main").rstrip(' / ')
         self.settings = options
 
     def render(self, template_name, context=None):
@@ -34,7 +35,7 @@ class BaseHandler(View):
         assert not set(map(lambda x: x[0], functions)) & set(context.keys())
         context.update(functions)
         context.update({
-            'url_prefix': self.request.path,
+            'url_prefix': self.url_prefix,
             'isinstance': isinstance
         })
         return render(self.request, template_name,
@@ -47,9 +48,8 @@ class BaseHandler(View):
     def write_error(self, status_code, **kwargs):
         if status_code in (404, 403):
             message = None
-            if 'exc_info' in kwargs and\
-                    kwargs['exc_info'][0] == Http404:
-                    message = kwargs['exc_info'][1].log_message
+            if 'exc_info' in kwargs and kwargs['exc_info'][0] == Http404:
+                message = kwargs['exc_info'][1].log_message
             response = self.render('flower/404.html', context={'message': message})
         elif status_code == 500:
             error_trace = ""
@@ -67,11 +67,10 @@ class BaseHandler(View):
             response['WWW-Authenticate'] = 'Basic realm="flower"'
         else:
             response = HttpResponse(status=status_code)
-            if 'exc_info' in kwargs and\
-                    kwargs['exc_info'][0] == Http404:
-                    message = kwargs['exc_info'][1].log_message
-                    response['Content-Type'] = 'text/plain'
-                    response.write(message)
+            if 'exc_info' in kwargs and kwargs['exc_info'][0] == Http404:
+                message = kwargs['exc_info'][1].log_message
+                response['Content-Type'] = 'text/plain'
+                response.write(message)
         return response
 
     def get_current_user(self):
