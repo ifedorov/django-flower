@@ -35,8 +35,8 @@
     </tr>
     </thead>
     <tbody>
-    {% for uuid, task in tasks %}
-        {% if getattr(task, 'name', None) == None %}
+    {% for task in tasks %}
+        {% if task.name == None %}
             {% continue %}
         {% endif %}
     <tr>
@@ -59,7 +59,7 @@
             {{ '%.2f' % humanize(task.timestamp - task.started) }} sec
         {% endif %}
       </td>
-      <td>{{ task.worker }}</td>
+      <td>{{ task.worker__name }}</td>
       <td>{{ task.exchange }}</td>
       <td>{{ task.routing_key }}</td>
       <td>{{ task.retries }}</td>

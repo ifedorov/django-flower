@@ -8,6 +8,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 
 from flower.exceptions import HTTPError
+from flower.models import CeleryTask
 
 try:
     from itertools import imap
@@ -111,8 +112,18 @@ class TasksView(BaseHandler):
         time = 'natural-time' if settings.natural_time else 'time'
         if app.conf.CELERY_TIMEZONE:
             time += '-' + str(app.conf.CELERY_TIMEZONE)
+
+        state = self.get_argument("state", default=None)
+        tasks = CeleryTask.objects.all()
+        if state:
+            tasks = tasks.filter(state=state)
+        tasks = tasks.values(
+            "uuid",
+            "name",
+            "state",
+            "worker__name")
         context = dict(
-            tasks=[],
+            tasks=tasks,
             columns=settings.tasks_columns,
             time=time,
         )

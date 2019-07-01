@@ -90,8 +90,8 @@ class BaseHandler(View):
             return user
         return None
 
-    def get_argument(self, name, default=[], strip=True, type=None):
-        arg = self.request.GET.get('name', default)
+    def get_argument(self, name, default=None, strip=True, type=None):
+        arg = self.request.GET.get(name, default)
         if isinstance(arg, string_types) and strip:
             arg = arg.strip()
         if type is not None:
