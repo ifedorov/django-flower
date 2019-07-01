@@ -74,7 +74,8 @@ class ControlHandler(BaseHandler):
 
 class WorkerShutDown(ControlHandler):
 
-    def post(self, workername):
+    @method_decorator(login_required)
+    def post(self, request, workername):
         """
 Shut down a worker
 
@@ -114,7 +115,7 @@ Shut down a worker
 class WorkerPoolRestart(ControlHandler):
 
     @method_decorator(login_required)
-    def post(self, workername):
+    def post(self, request, workername):
         """
 Restart worker's pool
 
@@ -163,7 +164,7 @@ Restart worker's pool
 class WorkerPoolGrow(ControlHandler):
 
     @method_decorator(login_required)
-    def post(self, workername):
+    def post(self, request, workername):
         """
 Grow worker's pool
 
@@ -215,7 +216,7 @@ Grow worker's pool
 class WorkerPoolShrink(ControlHandler):
 
     @method_decorator(login_required)
-    def post(self, workername):
+    def post(self, request, workername):
         """
 Shrink worker's pool
 
@@ -269,7 +270,7 @@ Shrink worker's pool
 class WorkerPoolAutoscale(ControlHandler):
 
     @method_decorator(login_required)
-    def post(self, workername):
+    def post(self, request, workername):
         """
 Autoscale worker pool
 
@@ -328,7 +329,7 @@ Autoscale worker pool
 class WorkerQueueAddConsumer(ControlHandler):
 
     @method_decorator(login_required)
-    def post(self, workername):
+    def post(self, request, workername):
         """
 Start consuming from a queue
 
@@ -382,7 +383,7 @@ Start consuming from a queue
 class WorkerQueueCancelConsumer(ControlHandler):
 
     @method_decorator(login_required)
-    def post(self, workername):
+    def post(self, request, workername):
         """
 Stop consuming from a queue
 
@@ -437,7 +438,7 @@ Stop consuming from a queue
 class TaskRevoke(ControlHandler):
 
     @method_decorator(login_required)
-    def post(self, taskid):
+    def post(self, request, taskid):
         """
 Revoke a task
 
@@ -478,7 +479,7 @@ Revoke a task
 class TaskTimout(ControlHandler):
 
     @method_decorator(login_required)
-    def post(self, taskname):
+    def post(self, request, taskname):
         """
 Change soft and hard time limits for a task
 
@@ -538,7 +539,7 @@ Change soft and hard time limits for a task
 class TaskRateLimit(ControlHandler):
 
     @method_decorator(login_required)
-    def post(self, taskname):
+    def post(self, request, taskname):
         """
 Change rate limit for a task
 
@@ -579,13 +580,13 @@ Change rate limit for a task
         if workername is not None and not self.is_worker(workername):
             raise HTTPError(404, "Unknown worker '%s'" % workername)
 
-        logger.info("Setting '%s' rate limit for '%s' task",
-                    ratelimit, taskname)
+        logger.info("Setting '%s' rate limit for '%s' task", ratelimit, taskname)
         destination = [workername] if workername is not None else None
         response = self.capp.control.rate_limit(
             taskname, ratelimit, reply=True, destination=destination)
         if response and 'ok' in response[0][workername]:
-            self.write(dict(message=response[0][workername]['ok']))
+            response = self.write(dict(message=response[0][workername]['ok']))
         else:
             logger.error(response)
-            HttpResponse("Failed to set rate limit: '%s'" % self.error_reason(taskname, response))
+            response = HttpResponse("Failed to set rate limit: '%s'" % self.error_reason(taskname, response))
+        return response
