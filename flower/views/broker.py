@@ -16,12 +16,13 @@ logger = logging.getLogger(__name__)
 class BrokerView(BaseHandler):
 
     @method_decorator(login_required)
-    def get(self):
-        app = self.settings.app
+    def get(self, request):
+        app = self.capp
         broker_options = app.conf.BROKER_TRANSPORT_OPTIONS
-
         http_api = None
-        if app.transport == 'amqp' and app.options.broker_api:
+
+        from celery.backends.amqp import AMQPBackend
+        if isinstance(app.backend, AMQPBackend) and app.options.broker_api:
             http_api = app.options.broker_api
 
         try:
@@ -39,7 +40,7 @@ class BrokerView(BaseHandler):
         except Exception as e:
             raise HTTPError(404, "Unable to get queues: '%s'" % e)
 
-        return self.render("broker.html",
+        return self.render("flower/broker.html",
                            context={
                                'broker_url': app.connection().as_uri(),
                                'queues': queues

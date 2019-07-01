@@ -1,8 +1,9 @@
-{% extends "base.html" %}
+{% extends "flower/base.html" %}
 
 {% block navbar %}
-  {% module Template("navbar.html", active_tab="broker") %}
-{% end %}
+  {% set active_tab="broker" %}
+  {% include("flower/navbar.html") %}
+{% endblock %}
 
 {% block container %}
   <div class="container-fluid">
@@ -24,7 +25,7 @@
       </thead>
       <tbody>
       {% for queue in queues %}
-        <tr id="{{ url_escape(queue['name']) }}">
+        <tr id="{{ queue['name']|e }}">
             <td>{{ queue['name'] }}</td>
             <td>{{ queue.get('messages', 'N/A') }}</td>
             <td>{{ queue.get('messages_unacknowledged', 'N/A') }}</td>
@@ -32,9 +33,9 @@
             <td>{{ queue.get('consumers', 'N/A') }}</td>
             <td>{{ queue.get('idle_since', 'N/A') }}</td>
         </tr>
-      {% end %}
+      {% endfor %}
       </tbody>
      </table>
 
 </div>
-{% end %}
+{% endblock %}
