@@ -14,6 +14,7 @@ from celery.contrib.abortable import AbortableAsyncResult
 from celery.backends.base import DisabledBackend
 
 from flower.exceptions import HTTPError
+from flower.models import CeleryTask
 from ..utils import tasks
 from ..views import BaseHandler
 from ..utils.broker import Broker
@@ -566,9 +567,8 @@ List (seen) task types
 :statuscode 200: no error
 :statuscode 401: unauthorized request
         """
-        seen_task_types = self.capp.events.state.task_types()
-
-        response = {'task-types': seen_task_types}
+        seen_task_types = CeleryTask.objects.values_list("name", flat=True).distinct()
+        response = {'task-types': list(seen_task_types)}
         return self.write(response)
 
 

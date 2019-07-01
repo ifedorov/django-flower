@@ -39,7 +39,7 @@ urlpatterns = [
 
     # Task API
     url(r"^api/tasks/$", tasks.ListTasks.as_view()),
-    url(r"^api/task/types/$", tasks.ListTaskTypes),
+    url(r"^api/task/types/$", tasks.ListTaskTypes.as_view()),
     url(r"^api/queues/length/$", tasks.GetQueueLengths),
     url(r"^api/task/info/(.*)/$", tasks.TaskInfo),
     url(r"^api/task/apply/(.+)/$", tasks.TaskApply),
