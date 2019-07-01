@@ -33,7 +33,7 @@
       </thead>
       <tbody>
         {% for name, info in workers.items() %}
-        <tr id="{{ url_escape(name) }}">
+        <tr id="{{ name|e }}">
             <td>{{ name }}</td>
             <td>{{ info.get('status', None) }}</td>
             <td>{{ info.get('active', 0) or 0 }}</td>

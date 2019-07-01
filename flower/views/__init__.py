@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 
+import inspect
 import re
 import traceback
 from base64 import b64decode
@@ -13,6 +14,7 @@ from django.views.generic import View
 
 from flower.exceptions import HTTPError
 from flower.options import options
+from flower.utils import template
 from ..utils import bugreport, prepend_url
 
 
@@ -24,6 +26,9 @@ class BaseHandler(View):
         self.settings = options
 
     def render(self, template_name, context=None):
+        functions = inspect.getmembers(template, inspect.isfunction)
+        assert not set(map(lambda x: x[0], functions)) & set(context.keys())
+        context.update(functions)
         return render(self.request, template_name,
                       context=context,
                       using=self.template_engine)

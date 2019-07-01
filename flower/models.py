@@ -6,7 +6,13 @@ class CeleryWorker(models.Model):
                           primary_key=True,
                           db_index=True)
     name = models.CharField("Name", max_length=512)
-    alive = models.BooleanField("Alive", default=False)
+    active = models.BooleanField("active", default=False)
+
+
+class CeleryEvent(models.Model):
+    worker = models.ForeignKey(CeleryWorker, verbose_name="Worker")
+    event = models.CharField("Event", max_length=32)
+    counter = models.BigIntegerField("Counter", default=0)
 
 
 class CeleryTask(models.Model):

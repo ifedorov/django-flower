@@ -8,7 +8,7 @@ import time
 from celery.events import EventReceiver
 from celery.events.state import State
 
-from flower.models import CeleryWorker, CeleryTask
+from flower.models import CeleryWorker, CeleryTask, CeleryEvent
 
 try:
     from collections import Counter
@@ -84,7 +84,7 @@ class Events(object):
         def new_worker(worker):
             defaults = {
                 'name': worker.hostname,
-                'alive': worker.alive
+                'active': worker.alive
             }
             obj, created = CeleryWorker.objects.get_or_create(pk=worker.id, defaults=defaults)
             if not created:
@@ -92,9 +92,22 @@ class Events(object):
                     setattr(obj, name, value)
             return obj, created
 
+        workers = self.state.workers
+        for key in workers.iterkeys():
+            worker = workers[key]
+            worker, created = new_worker(worker)
+            event_counter = self.state.counter.get(worker.name)
+            for name, value in event_counter.iteritems():
+                CeleryEvent.objects.update_or_create(worker=worker, event=name,
+                                                     defaults={'counter': value})
+            if not created:
+                worker.save()
+
         tasks = self.state.tasks
-        for key in tasks.keys():
+        for key in tasks.iterkeys():
             task = tasks[key]
+            if task.name is None:
+                continue
             worker = task.worker
             worker, created = new_worker(worker)
             if not created:

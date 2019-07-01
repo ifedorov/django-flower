@@ -9,6 +9,7 @@ from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views.generic import View
 
+from flower.models import CeleryWorker
 from ..api.workers import ListWorkers
 from ..views import BaseHandler
 
@@ -24,24 +25,23 @@ class DashboardView(BaseHandler):
 
         app = self.settings.app
 
-        state = app.events.State()
-        broker = app.connection().as_uri()
-
         if refresh:
             try:
                 return JsonResponse(list(ListWorkers.update_workers(app=app)))
             except Exception as e:
                 logger.exception('Failed to update workers: %s', e)
 
+        broker = app.connection().as_uri()
         workers = {}
-        for task in state.tasks:
-            info = task.as_dict()
-            info.update(self._as_dict(task.worker))
-            info.update(status=task.worker.alive)
-            workers[task.name] = info
-
+        for worker in CeleryWorker.objects.all():
+            for event in worker.celeryevent_set.all():
+                info = {
+                    event.event: event.counter,
+                    'active': worker.active
+                }
+                workers[worker.name] = info
         if json:
-            response = JsonResponse(dict(data=list(workers.values())))
+            response = JsonResponse(dict(data=workers.values()))
         else:
             def lazy_alive_workers():
                 return sum(map(lambda x: x.get('active') or 0, workers.values()))
