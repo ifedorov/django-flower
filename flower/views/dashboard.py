@@ -31,7 +31,6 @@ class DashboardView(BaseHandler):
             except Exception as e:
                 logger.exception('Failed to update workers: %s', e)
 
-        broker = app.connection().as_uri()
         workers = {}
         for worker in CeleryWorker.objects.enabled():
             info = {'active': worker.active}
@@ -43,8 +42,18 @@ class DashboardView(BaseHandler):
             workers[worker.name] = info
 
         if json:
-            response = JsonResponse(dict(data=workers.values()))
+            data = []
+            for key in workers:
+                worker = workers[key].copy()
+                worker.setdefault('name', key)
+                worker.setdefault('loadavg', 0)
+                worker.setdefault('hostname', worker['name'])
+                worker['active'] = 1 if worker['active'] else 0
+                data.append(worker)
+            response = JsonResponse(dict(data=data))
         else:
+            broker = app.connection().as_uri()
+
             def lazy_alive_workers():
                 return len(filter(lambda x: x.get('active'), workers.values()))
 
