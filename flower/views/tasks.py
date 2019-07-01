@@ -25,9 +25,9 @@ class TaskView(BaseHandler):
 
     @method_decorator(login_required)
     def get(self, task_id):
-        task = get_task_by_id(self.settings.app.events, task_id)
-
-        if task is None:
+        try:
+            task = get_task_by_id(task_id)
+        except Exception:
             raise HTTPError(404, "Unknown task '%s'" % task_id)
 
         self.render("task.html", context={'task': task})
