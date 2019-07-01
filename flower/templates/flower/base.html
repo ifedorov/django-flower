@@ -86,7 +86,11 @@
     <script src="{{ static('flower/js/moment-timezone-with-data.min.js') }}"></script>
 
     <script src="{{ static('flower/js/flower.js') }}"></script>
-
+    <script type="application/javascript">
+        $(function () {
+            flower.ajaxSetup();
+        })
+    </script>
     {% block extra_scripts %}
     {% endblock %}
 
