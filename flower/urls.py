@@ -3,6 +3,7 @@ from __future__ import absolute_import
 #import os
 
 from django.conf.urls import url, include
+from django.views.decorators.cache import never_cache
 
 from .api import events
 from .api import control
@@ -20,8 +21,8 @@ from .views.dashboard import DashboardView, DashboardUpdateHandler
 
 urlpatterns = [
     # App
-    url(r"^$", DashboardView.as_view(), name='main'),
-    url(r"^dashboard/$", DashboardView.as_view(), name='dashboard'),
+    url(r"^$", never_cache(DashboardView.as_view()), name='main'),
+    url(r"^dashboard/$", never_cache(DashboardView.as_view()), name='dashboard'),
     url(r"^worker/(.+)/$", WorkerView.as_view(), name='worker'),
     url(r"^task/(.+)/$", TaskView.as_view(), name='task'),
     url(r"^tasks/$", TasksView.as_view(), name='tasks'),
