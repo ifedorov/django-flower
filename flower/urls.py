@@ -20,7 +20,7 @@ from .views.dashboard import DashboardView, DashboardUpdateHandler
 
 urlpatterns = [
     # App
-    url(r"", DashboardView.as_view(), name='main'),
+    url(r"^$", DashboardView.as_view(), name='main'),
     url(r"dashboard", DashboardView, name='dashboard'),
     # url(r"worker/(.+)", WorkerView, name='worker'),
     # url(r"task/(.+)", TaskView, name='task'),

@@ -105,14 +105,15 @@ class TasksDataTable(BaseHandler):
 class TasksView(BaseHandler):
 
     @method_decorator(login_required)
-    def get(self):
-        app = self.settings.app
-        time = 'natural-time' if app.options.natural_time else 'time'
+    def get(self, request, *args, **kwargs):
+        settings = self.settings
+        app = settings.app
+        time = 'natural-time' if settings.natural_time else 'time'
         if app.conf.CELERY_TIMEZONE:
             time += '-' + str(app.conf.CELERY_TIMEZONE)
         context = dict(
             tasks=[],
-            columns=app.options.tasks_columns,
+            columns=settings.tasks_columns,
             time=time,
         )
         return self.render("flower/tasks.html", context=context)
