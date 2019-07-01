@@ -7,6 +7,7 @@ class CeleryWorker(models.Model):
                           db_index=True)
     name = models.CharField("Name", max_length=512)
     active = models.BooleanField("active", default=False)
+    status = models.CharField("Status", max_length=32)
 
 
 class CeleryEvent(models.Model):

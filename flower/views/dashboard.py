@@ -37,7 +37,8 @@ class DashboardView(BaseHandler):
             for event in worker.celeryevent_set.all():
                 info = {
                     event.event: event.counter,
-                    'active': worker.active
+                    'active': worker.active,
+                    'status': worker.status
                 }
                 workers[worker.name] = info
         if json:

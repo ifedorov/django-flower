@@ -84,7 +84,8 @@ class Events(object):
         def new_worker(worker):
             defaults = {
                 'name': worker.hostname,
-                'active': worker.alive
+                'active': worker.alive,
+                'status': worker.status_string
             }
             obj, created = CeleryWorker.objects.get_or_create(pk=worker.id, defaults=defaults)
             if not created:
