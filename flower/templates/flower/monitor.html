@@ -1,8 +1,9 @@
-{% extends "base.html" %}
+{% extends "flower/base.html" %}
 
 {% block navbar %}
-  {% module Template("navbar.html", active_tab="monitor") %}
-{% end %}
+  {% set active_tab="monitor" %}
+  {% include("flower/navbar.html") %}
+{% endblock %}
 
 {% block container %}
 
@@ -60,4 +61,4 @@
     </div>
 </div>
 
-{% end %}
+{% endblock %}

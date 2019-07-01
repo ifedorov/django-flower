@@ -63,11 +63,11 @@ urlpatterns = [
     # # WebSocket Updates
     # url(r"update-dashboard", DashboardUpdateHandler),
     # # Monitors
-    url(r"^monitor/$", monitor.Monitor, name='monitor'),
-    url(r"^monitor/succeeded-tasks/$", monitor.SucceededTaskMonitor),
-    url(r"^monitor/failed-tasks/$", monitor.FailedTaskMonitor),
-    url(r"^monitor/completion-time/$", monitor.TimeToCompletionMonitor),
-    url(r"^monitor/broker/$", monitor.BrokerMonitor),
+    url(r"^monitor/$", monitor.Monitor.as_view(), name='monitor'),
+    url(r"^monitor/succeeded-tasks/$", monitor.SucceededTaskMonitor.as_view()),
+    url(r"^monitor/failed-tasks/$", monitor.FailedTaskMonitor.as_view()),
+    url(r"^monitor/completion-time/$", monitor.TimeToCompletionMonitor.as_view()),
+    url(r"^monitor/broker/$", monitor.BrokerMonitor.as_view()),
     # Error
-    url(r"^.*/$", NotFoundErrorHandler),
+    url(r"^.*/$", NotFoundErrorHandler.as_view()),
 ]

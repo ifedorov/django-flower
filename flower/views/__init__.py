@@ -27,6 +27,8 @@ class BaseHandler(View):
         self.settings = options
 
     def render(self, template_name, context=None):
+        if context is None:
+            context = {}
         functions = inspect.getmembers(template, inspect.isfunction)
         assert not set(map(lambda x: x[0], functions)) & set(context.keys())
         context.update(functions)
