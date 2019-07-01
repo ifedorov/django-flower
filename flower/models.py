@@ -6,7 +6,16 @@ class CeleryWorkerManager(models.Manager):
     def enabled(self):
         return self.filter(enabled=True)
 
-    def tasks(self, fields, filters=None):
+    def tasks_values(self, fields, filters=None):
+        """Return tasks of active workers"""
+        for tasks in self.tasks_sets(filters=filters):
+            if not tasks.exists():
+                continue
+            for task in tasks.values(*fields):
+                yield task
+        raise StopIteration
+
+    def tasks_sets(self, filters=None):
         """Return tasks of active workers"""
         for worker in self.enabled():
             tasks = worker.celerytask_set.all()
@@ -14,8 +23,7 @@ class CeleryWorkerManager(models.Manager):
                 tasks = tasks.filter(**filters)
             if not tasks.exists():
                 continue
-            for task in tasks.values(*fields):
-                yield task
+            yield tasks
         raise StopIteration
 
 

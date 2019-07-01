@@ -14,7 +14,7 @@ from celery.contrib.abortable import AbortableAsyncResult
 from celery.backends.base import DisabledBackend
 
 from flower.exceptions import HTTPError
-from flower.models import CeleryTask
+from flower.models import CeleryTask, CeleryWorker
 from ..utils import tasks
 from ..views import BaseHandler
 from ..utils.broker import Broker
@@ -568,8 +568,9 @@ List (seen) task types
 :statuscode 200: no error
 :statuscode 401: unauthorized request
         """
-        seen_task_types = CeleryTask.objects.values_list("name", flat=True).distinct()
-        response = {'task-types': list(seen_task_types)}
+        tasks_sets = CeleryWorker.objects.tasks_sets()
+        seen_task_types = CeleryTask.objects.union(*tuple(tasks_sets)).values("name").distinct()
+        response = {'task-types': [obj['name'] for obj in seen_task_types]}
         return self.write(response)
 
 

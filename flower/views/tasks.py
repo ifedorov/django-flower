@@ -123,7 +123,7 @@ class TasksView(BaseHandler):
             "state",
             "worker__name")
         context = dict(
-            tasks=CeleryWorker.objects.tasks(fields, filters=filters),
+            tasks=CeleryWorker.objects.tasks_values(fields, filters=filters),
             columns=settings.tasks_columns,
             time=time,
         )
