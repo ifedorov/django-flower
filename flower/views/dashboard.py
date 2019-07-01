@@ -33,7 +33,7 @@ class DashboardView(BaseHandler):
 
         broker = app.connection().as_uri()
         workers = {}
-        for worker in CeleryWorker.objects.all():
+        for worker in CeleryWorker.objects.enabled():
             info = {'active': worker.active}
             for event in worker.celeryevent_set.all():
                 info.update({
