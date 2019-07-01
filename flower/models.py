@@ -2,10 +2,9 @@ from django.db import models
 
 
 class CeleryWorker(models.Model):
-    id = models.CharField("ID", max_length=512,
-                          primary_key=True,
-                          db_index=True)
-    name = models.CharField("Name", max_length=512)
+    name = models.CharField("Name", max_length=512,
+                            primary_key=True,
+                            db_index=True)
     active = models.BooleanField("active", default=False)
     status = models.CharField("Status", max_length=32)
 

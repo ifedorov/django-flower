@@ -34,18 +34,19 @@ class DashboardView(BaseHandler):
         broker = app.connection().as_uri()
         workers = {}
         for worker in CeleryWorker.objects.all():
+            info = {'active': worker.active}
             for event in worker.celeryevent_set.all():
-                info = {
+                info.update({
                     event.event: event.counter,
-                    'active': worker.active,
                     'status': worker.status
-                }
-                workers[worker.name] = info
+                })
+            workers[worker.name] = info
+
         if json:
             response = JsonResponse(dict(data=workers.values()))
         else:
             def lazy_alive_workers():
-                return sum(map(lambda x: x.get('active') or 0, workers.values()))
+                return len(filter(lambda x: x.get('active'), workers.values()))
 
             def lazy_task_received():
                 return sum(map(lambda x: x.get('task-received') or 0, workers.values()))

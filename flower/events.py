@@ -83,29 +83,23 @@ class Events(object):
 
         def new_worker(worker):
             defaults = {
-                'name': worker.hostname,
                 'active': worker.alive,
                 'status': worker.status_string
             }
-            obj, created = CeleryWorker.objects.get_or_create(pk=worker.id, defaults=defaults)
-            if not created:
-                for name, value in defaults.iteritems():
-                    setattr(obj, name, value)
-            return obj, created
+            return CeleryWorker.objects.update_or_create(pk=worker.hostname,
+                                                         defaults=defaults)
 
         workers = self.state.workers
-        for key in workers.iterkeys():
+        for key in workers.keys():
             worker = workers[key]
             worker, created = new_worker(worker)
             event_counter = self.state.counter.get(worker.name)
             for name, value in event_counter.iteritems():
                 CeleryEvent.objects.update_or_create(worker=worker, event=name,
                                                      defaults={'counter': value})
-            if not created:
-                worker.save()
 
         tasks = self.state.tasks
-        for key in tasks.iterkeys():
+        for key in tasks.keys():
             task = tasks[key]
             if task.name is None:
                 continue
@@ -118,8 +112,4 @@ class Events(object):
                 'state': task.state,
                 'worker': worker
             }
-            obj, created = CeleryTask.objects.get_or_create(pk=key, defaults=defaults)
-            if not created:
-                for name, value in defaults.iteritems():
-                    setattr(obj, name, value)
-                obj.save()
+            CeleryTask.objects.update_or_create(pk=key, defaults=defaults)
