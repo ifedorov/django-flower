@@ -15,9 +15,9 @@ logger = logging.getLogger(__name__)
 class WorkerView(BaseHandler):
 
     @method_decorator(login_required)
-    def get(self, name):
+    def get(self, request, name):
         try:
-            yield ListWorkers.update_workers(app=self.capp, workername=name)
+            ListWorkers.update_workers(settings=self.settings, workername=name)
         except Exception as e:
             logger.error(e)
 
@@ -27,7 +27,7 @@ class WorkerView(BaseHandler):
             raise HTTPError(404, "Unknown worker '%s'" % name)
         if 'stats' not in worker:
             raise HTTPError(404, "Unable to get stats for '%s' worker" % name)
-
-        self.render("worker.html", context={
+        context = {
             'worker': dict(worker, name=name)
-        })
+        }
+        return self.render("flower/worker.html", context=context)

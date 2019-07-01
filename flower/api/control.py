@@ -20,33 +20,35 @@ class ControlHandler(BaseHandler):
     worker_cache = collections.defaultdict(dict)
 
     def update_cache(self, workername=None):
-        yield self.update_workers(workername=workername,
-                                  app=self.capp)
+        return self.update_workers(
+            settings=self.settings,
+            workername=workername
+        )
 
     @classmethod
-    def update_workers(cls, app, workername=None):
+    def update_workers(cls, settings, workername=None):
         logger.debug("Updating %s worker's cache...", workername or 'all')
 
-        futures = []
+        results = []
+        app = settings.app
         destination = [workername] if workername else None
-        timeout = app.options.inspect_timeout / 1000.0
-        inspect = app.capp.control.inspect(
-            timeout=timeout, destination=destination)
+        timeout = settings.inspect_timeout / 1000.0
+        inspect = app.control.inspect(timeout=timeout,
+                                      destination=destination)
         for method in cls.INSPECT_METHODS:
-            futures.append(app.delay(getattr(inspect, method)))
+            results.append(getattr(inspect, method)())
 
-        results = yield futures
-
-        for i, result in enumerate(results):
+        for index, result in enumerate(results):
             if result is None:
                 logger.warning("'%s' inspect method failed",
-                               cls.INSPECT_METHODS[i])
+                               cls.INSPECT_METHODS[index])
                 continue
             for worker, response in result.items():
                 if response is not None:
                     info = cls.worker_cache[worker]
-                    info[cls.INSPECT_METHODS[i]] = response
+                    info[cls.INSPECT_METHODS[index]] = response
                     info['timestamp'] = time.time()
+        return results
 
     def is_worker(self, workername):
         return workername and workername in self.worker_cache
@@ -256,7 +258,7 @@ Shrink worker's pool
         if response and 'ok' in response[0][workername]:
             return JsonResponse(dict(
                 message="Shrinking '%s' worker's pool by %s" % (
-                            workername, n)))
+                    workername, n)))
         else:
             logger.error(response)
             return HttpResponse("Failed to shrink '%s' worker's pool: %s" % (
@@ -530,7 +532,7 @@ Change soft and hard time limits for a task
         else:
             logger.error(response)
             return HttpResponse("Failed to set timeouts: '%s'" %
-                   self.error_reason(taskname, response), status=403)
+                                self.error_reason(taskname, response), status=403)
 
 
 class TaskRateLimit(ControlHandler):

@@ -32,7 +32,10 @@ class BaseHandler(View):
         functions = inspect.getmembers(template, inspect.isfunction)
         assert not set(map(lambda x: x[0], functions)) & set(context.keys())
         context.update(functions)
-        context.update(url_prefix=self.request.path)
+        context.update({
+            'url_prefix': self.request.path,
+            'isinstance': isinstance
+        })
         return render(self.request, template_name,
                       context=context,
                       using=self.template_engine)
