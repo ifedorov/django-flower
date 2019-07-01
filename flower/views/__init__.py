@@ -29,6 +29,7 @@ class BaseHandler(View):
         functions = inspect.getmembers(template, inspect.isfunction)
         assert not set(map(lambda x: x[0], functions)) & set(context.keys())
         context.update(functions)
+        context.update(url_prefix=self.request.path)
         return render(self.request, template_name,
                       context=context,
                       using=self.template_engine)
@@ -109,7 +110,7 @@ class BaseHandler(View):
     @property
     def capp(self):
         "return Celery application object"
-        return self.settings.capp
+        return self.settings.app
 
     def reverse_url(self, *args):
         prefix = self.settings.url_prefix
