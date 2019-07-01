@@ -23,7 +23,8 @@ class SucceededTaskMonitor(BaseHandler):
     @method_decorator(login_required)
     def get(self, request):
         timestamp = self.get_argument('lastquery', type=float)
-        state = self.settings.app.events.state
+
+        state = self.settings.app.events.State()
 
         data = defaultdict(int)
         for _, task in state.itertasks():
@@ -95,7 +96,7 @@ class BrokerMonitor(BaseHandler):
         app = self.settings.app
         try:
             broker = Broker(app.connection().as_uri(include_password=True),
-                            http_api=app.options.broker_api)
+                            http_api=self.settings.broker_api)
         except NotImplementedError:
             return self.write({})
 
