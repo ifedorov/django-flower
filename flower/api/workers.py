@@ -3,13 +3,11 @@ from __future__ import absolute_import
 import logging
 
 from django.contrib.auth.decorators import login_required
-from django.http import StreamingHttpResponse
 from django.utils.decorators import method_decorator
 
 from flower.exceptions import HTTPError
-from .control import ControlHandler
 from flower.models import CeleryWorker
-
+from .control import ControlHandler
 
 logger = logging.getLogger(__name__)
 
@@ -162,19 +160,20 @@ List workers
         workername = self.get_argument('workername', default=None)
 
         if status:
-            info = list(CeleryWorker.objects.values_list(
+            info = list(CeleryWorker.enabled().values_list(
                 "name",
                 "active"
             ))
             return self.write(info)
 
-        if self.worker_cache and not refresh and\
-                workername in self.worker_cache:
+        if self.worker_cache and not refresh and workername in self.worker_cache:
             return self.write({workername: self.worker_cache[workername]})
 
         if refresh:
             try:
-                return StreamingHttpResponse(self.update_cache(workername=workername))
+                result = self.update_cache(workername=workername)
+                assert all(result), 'refresh failed'
+                return self.write({'messages': 'Refreshed'})
             except Exception as e:
                 msg = "Failed to update workers: %s" % e
                 logger.error(msg)
