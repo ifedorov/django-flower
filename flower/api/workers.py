@@ -172,7 +172,7 @@ List workers
         if refresh:
             try:
                 result = self.update_cache(workername=workername)
-                assert all(result), 'refresh failed'
+                assert result, 'refresh failed'
                 return self.write({'messages': 'Refreshed'})
             except Exception as e:
                 msg = "Failed to update workers: %s" % e

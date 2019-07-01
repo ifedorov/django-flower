@@ -29,26 +29,28 @@ class ControlHandler(BaseHandler):
     def update_workers(cls, settings, workername=None):
         logger.debug("Updating %s worker's cache...", workername or 'all')
 
-        results = []
+        results = {}
         app = settings.app
         destination = [workername] if workername else None
         timeout = settings.inspect_timeout / 1000.0
         inspect = app.control.inspect(timeout=timeout,
                                       destination=destination)
         for method in cls.INSPECT_METHODS:
-            results.append(getattr(inspect, method)())
-
-        for index, result in enumerate(results):
+            result = getattr(inspect, method)()
             if result is None:
-                logger.warning("'%s' inspect method failed",
-                               cls.INSPECT_METHODS[index])
+                logger.warning("'%s' inspect method failed", method)
+            results[method] = result
+
+        for method in results:
+            result = results[method]
+            if result is None:
                 continue
-            for worker, response in result.items():
+            for worker, response in result.iteritems():
                 if response is not None:
                     info = cls.worker_cache[worker]
-                    info[cls.INSPECT_METHODS[index]] = response
+                    info[method] = response
                     info['timestamp'] = time.time()
-        return results
+        return all(results.values())
 
     def is_worker(self, workername):
         return workername and workername in self.worker_cache

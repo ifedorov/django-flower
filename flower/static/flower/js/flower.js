@@ -95,6 +95,7 @@ var flower = (function () {
             type: 'GET',
             url: url_prefix() + '/api/workers',
             dataType: 'json',
+            cache: false,
             data: {
                 workername: unescape(workername),
                 refresh: 1
