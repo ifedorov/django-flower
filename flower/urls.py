@@ -25,7 +25,7 @@ urlpatterns = [
     url(r"^dashboard/$", never_cache(DashboardView.as_view()), name='dashboard'),
     url(r"^worker/(.+)/$", WorkerView.as_view(), name='worker'),
     url(r"^task/(.+)/$", TaskView.as_view(), name='task'),
-    url(r"^tasks/$", TasksView.as_view(), name='tasks'),
+    url(r"^tasks/$", never_cache(TasksView.as_view()), name='tasks'),
     url(r"^tasks/datatable/$", TasksDataTable.as_view()),
     url(r"^broker/$", BrokerView.as_view(), name='broker'),
 

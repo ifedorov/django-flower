@@ -84,19 +84,27 @@ class Events(object):
         def new_worker(worker):
             defaults = {
                 'active': worker.alive,
-                'status': worker.status_string
+                'status': worker.status_string,
+                'name': worker.hostname,
+                'enabled': True
             }
-            return CeleryWorker.objects.update_or_create(pk=worker.hostname,
+            return CeleryWorker.objects.update_or_create(pk=worker.id,
                                                          defaults=defaults)
 
+        db_workers = []
         workers = self.state.workers
         for key in workers.keys():
             worker = workers[key]
             worker, created = new_worker(worker)
             event_counter = self.state.counter.get(worker.name)
+            db_workers.append(worker.pk)
             for name, value in event_counter.iteritems():
                 CeleryEvent.objects.update_or_create(worker=worker, event=name,
                                                      defaults={'counter': value})
+        # disable dead instances
+        CeleryWorker.objects.exclude(pk__in=db_workers).update(
+            active=False, enabled=False,
+            status='OFFLINE')
 
         tasks = self.state.tasks
         for key in tasks.keys():
