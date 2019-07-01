@@ -21,7 +21,7 @@ class ControlHandler(BaseHandler):
 
     def update_cache(self, workername=None):
         yield self.update_workers(workername=workername,
-                                  app=self.application)
+                                  app=self.capp)
 
     @classmethod
     def update_workers(cls, app, workername=None):

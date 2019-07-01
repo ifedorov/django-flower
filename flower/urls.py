@@ -5,13 +5,13 @@ from __future__ import absolute_import
 from django.conf.urls import url, include
 
 # from .api import events
-# from .api import control
+from .api import control
 # from .api import tasks
-# from .api import workers
+from .api import workers
 # from .views import auth
 from .views import monitor
 from .views.broker import BrokerView
-# from .views.workers import WorkerView
+from .views.workers import WorkerView
 from .views.tasks import TaskView, TasksView, TasksDataTable
 from .views.error import NotFoundErrorHandler
 from .views.dashboard import DashboardView, DashboardUpdateHandler
@@ -28,15 +28,14 @@ urlpatterns = [
     # url(r"tasks/datatable", TasksDataTable),
     url(r"broker", BrokerView.as_view(), name='broker'),
     # # Worker API
-    # url(r"api/workers", workers.ListWorkers),
-    # url(r"api/worker/shutdown/(.+)", control.WorkerShutDown),
-    # url(r"api/worker/pool/restart/(.+)", control.WorkerPoolRestart),
-    # url(r"api/worker/pool/grow/(.+)", control.WorkerPoolGrow),
-    # url(r"api/worker/pool/shrink/(.+)", control.WorkerPoolShrink),
-    # url(r"api/worker/pool/autoscale/(.+)", control.WorkerPoolAutoscale),
-    # url(r"api/worker/queue/add-consumer/(.+)", control.WorkerQueueAddConsumer),
-    # url(r"api/worker/queue/cancel-consumer/(.+)",
-    #     control.WorkerQueueCancelConsumer),
+    url(r"api/workers", workers.ListWorkers.as_view()),
+    url(r"api/worker/shutdown/(.+)", control.WorkerShutDown.as_view()),
+    url(r"api/worker/pool/restart/(.+)", control.WorkerPoolRestart.as_view()),
+    url(r"api/worker/pool/grow/(.+)", control.WorkerPoolGrow.as_view()),
+    url(r"api/worker/pool/shrink/(.+)", control.WorkerPoolShrink.as_view()),
+    url(r"api/worker/pool/autoscale/(.+)", control.WorkerPoolAutoscale.as_view()),
+    url(r"api/worker/queue/add-consumer/(.+)", control.WorkerQueueAddConsumer.as_view()),
+    url(r"api/worker/queue/cancel-consumer/(.+)", control.WorkerQueueCancelConsumer.as_view()),
     # # Task API
     # url(r"api/tasks", tasks.ListTasks),
     # url(r"api/task/types", tasks.ListTaskTypes),
