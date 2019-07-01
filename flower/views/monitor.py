@@ -14,14 +14,14 @@ from ..api.control import ControlHandler
 class Monitor(BaseHandler):
 
     @method_decorator(login_required)
-    def get(self):
+    def get(self, request):
         return self.render("flower/monitor.html")
 
 
 class SucceededTaskMonitor(BaseHandler):
 
     @method_decorator(login_required)
-    def get(self):
+    def get(self, request):
         timestamp = self.get_argument('lastquery', type=float)
         state = self.settings.app.events.state
 
@@ -39,7 +39,7 @@ class SucceededTaskMonitor(BaseHandler):
 class TimeToCompletionMonitor(BaseHandler):
 
     @method_decorator(login_required)
-    def get(self):
+    def get(self, request):
         timestamp = self.get_argument('lastquery', type=float)
         state = self.settings.app.events.State()
 
@@ -73,7 +73,7 @@ class TimeToCompletionMonitor(BaseHandler):
 class FailedTaskMonitor(BaseHandler):
 
     @method_decorator(login_required)
-    def get(self):
+    def get(self, request):
         timestamp = self.get_argument('lastquery', type=float)
         state = self.settings.app.events.State()
 
@@ -91,7 +91,7 @@ class FailedTaskMonitor(BaseHandler):
 class BrokerMonitor(BaseHandler):
 
     @method_decorator(login_required)
-    def get(self):
+    def get(self, request):
         app = self.settings.app
         try:
             broker = Broker(app.connection().as_uri(include_password=True),

@@ -21,12 +21,13 @@ from .views.dashboard import DashboardView, DashboardUpdateHandler
 urlpatterns = [
     # App
     url(r"^$", DashboardView.as_view(), name='main'),
-    url(r"^dashboard/$", DashboardView, name='dashboard'),
-    # url(r"worker/(.+)", WorkerView, name='worker'),
-    # url(r"task/(.+)", TaskView, name='task'),
+    url(r"^dashboard/$", DashboardView.as_view(), name='dashboard'),
+    url(r"^worker/(.+)/$", WorkerView.as_view(), name='worker'),
+    url(r"^task/(.+)/$", TaskView.as_view(), name='task'),
     url(r"^tasks/$", TasksView.as_view(), name='tasks'),
-    # url(r"tasks/datatable", TasksDataTable),
+    url(r"^tasks/datatable/$", TasksDataTable.as_view()),
     url(r"^broker/$", BrokerView.as_view(), name='broker'),
+
     # # Worker API
     url(r"^api/workers/$", workers.ListWorkers.as_view()),
     url(r"^api/worker/shutdown/(.+)/$", control.WorkerShutDown.as_view()),
@@ -62,11 +63,11 @@ urlpatterns = [
     # # WebSocket Updates
     # url(r"update-dashboard", DashboardUpdateHandler),
     # # Monitors
-    url(r"monitor", monitor.Monitor, name='monitor'),
-    # url(r"monitor/succeeded-tasks", monitor.SucceededTaskMonitor),
-    # url(r"monitor/failed-tasks", monitor.FailedTaskMonitor),
-    # url(r"monitor/completion-time", monitor.TimeToCompletionMonitor),
-    # url(r"monitor/broker", monitor.BrokerMonitor),
+    url(r"^monitor/$", monitor.Monitor, name='monitor'),
+    url(r"^monitor/succeeded-tasks/$", monitor.SucceededTaskMonitor),
+    url(r"^monitor/failed-tasks/$", monitor.FailedTaskMonitor),
+    url(r"^monitor/completion-time/$", monitor.TimeToCompletionMonitor),
+    url(r"^monitor/broker/$", monitor.BrokerMonitor),
     # Error
-    # (r".*", NotFoundErrorHandler),
+    url(r"^.*/$", NotFoundErrorHandler),
 ]

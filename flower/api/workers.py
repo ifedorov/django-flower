@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 class ListWorkers(ControlHandler):
 
     @method_decorator(login_required)
-    def get(self):
+    def get(self, request):
         """
 List workers
 
@@ -162,14 +162,15 @@ List workers
         workername = self.get_argument('workername', default=None)
 
         if status:
-            info = CeleryWorker.objects.values("name", "ative")
-            self.write(info)
-            return
+            info = list(CeleryWorker.objects.values_list(
+                "name",
+                "active"
+            ))
+            return self.write(info)
 
         if self.worker_cache and not refresh and\
                 workername in self.worker_cache:
-            self.write({workername: self.worker_cache[workername]})
-            return
+            return self.write({workername: self.worker_cache[workername]})
 
         if refresh:
             try:
@@ -183,6 +184,7 @@ List workers
             raise HTTPError(404, "Unknown worker '%s'" % workername)
 
         if workername:
-            self.write({workername: self.worker_cache[workername]})
+            response = self.write({workername: self.worker_cache[workername]})
         else:
-            self.write(self.worker_cache)
+            response = self.write(self.worker_cache)
+        return response
