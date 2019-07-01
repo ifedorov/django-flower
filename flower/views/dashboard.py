@@ -27,7 +27,7 @@ class DashboardView(BaseHandler):
 
         if refresh:
             try:
-                return JsonResponse(list(ListWorkers.update_workers(app=app)))
+                return JsonResponse(list(ListWorkers.update_workers(settings=self.settings)))
             except Exception as e:
                 logger.exception('Failed to update workers: %s', e)
 

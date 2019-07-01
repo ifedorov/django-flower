@@ -17,7 +17,8 @@ class WorkerView(BaseHandler):
     @method_decorator(login_required)
     def get(self, request, name):
         try:
-            ListWorkers.update_workers(settings=self.settings, workername=name)
+            ListWorkers.update_workers(settings=self.settings,
+                                       workername=name)
         except Exception as e:
             logger.error(e)
 
