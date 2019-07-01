@@ -19,7 +19,7 @@ from .views.dashboard import DashboardView, DashboardUpdateHandler
 #from .utils import gen_cookie_secret
 
 
-urlpatterns = [
+ns_urlpatterns = ([
     # App
     url(r"^$", never_cache(DashboardView.as_view()), name='main'),
     url(r"^dashboard/$", never_cache(DashboardView.as_view()), name='dashboard'),
@@ -71,4 +71,7 @@ urlpatterns = [
     url(r"^monitor/broker/$", monitor.BrokerMonitor.as_view()),
     # Error
     url(r"^.*/$", NotFoundErrorHandler.as_view()),
-]
+], 'flower')
+
+
+urlpatterns = [url("^", include(ns_urlpatterns))]
