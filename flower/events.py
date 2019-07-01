@@ -3,8 +3,9 @@ from __future__ import with_statement
 
 import collections
 import logging
+import time
 
-from celery.events.snapshot import Polaroid
+from celery.events import EventReceiver
 from celery.events.state import State
 
 from flower.models import CeleryWorker, CeleryTask
@@ -40,14 +41,30 @@ class EventsState(State):
         return super(EventsState, self).event(event)
 
 
-class Events(Polaroid):
+class Events(object):
 
-    def run(self, freq=1.0):
-        state = EventsState()
-        with self.app.connection() as connection:
-            recv = self.app.events.Receiver(connection, handlers={'*': state.event})
-            with self.__class__(state, freq=freq):
-                recv.capture(limit=None, timeout=None)
+    def __init__(self, app):
+        self.state = EventsState()
+        self.app = app
+
+    def run(self, ):
+        try_interval = 1
+        while True:
+            try:
+                try_interval *= 2
+
+                with self.app.connection() as conn:
+                    recv = EventReceiver(conn,
+                                         handlers={"*": self.on_shutter},
+                                         app=self.app)
+                    try_interval = 1
+                    recv.capture(limit=None, timeout=None, wakeup=True)
+            except Exception as e:
+                logger.error("Failed to capture events: '%s', "
+                             "trying again in %s seconds.",
+                             e, try_interval)
+                logger.debug(e, exc_info=True)
+                time.sleep(try_interval)
 
     def enable_events(self):
         # Periodically enable events for workers
@@ -57,33 +74,38 @@ class Events(Polaroid):
         except Exception as e:
             logger.debug("Failed to enable events: '%s'", e)
 
-    def on_shutter(self, state):
-        if not state.event_count:
+    def on_shutter(self, event):
+        self.state.event(event)
+
+        if not self.state.event_count:
             # No new events since last snapshot.
             return
-        tasks = state.tasks
+
+        def new_worker(worker):
+            defaults = {
+                'name': worker.hostname,
+                'alive': worker.alive
+            }
+            obj, created = CeleryWorker.objects.get_or_create(pk=worker.id, defaults=defaults)
+            if not created:
+                for name, value in defaults.iteritems():
+                    setattr(obj, name, value)
+            return obj, created
+
+        tasks = self.state.tasks
         for key in tasks.keys():
             task = tasks[key]
+            worker = task.worker
+            worker, created = new_worker(worker)
+            if not created:
+                worker.save()
             defaults = {
                 'name': task.name,
                 'state': task.state,
-                'worker': task.worker.id
+                'worker': worker
             }
             obj, created = CeleryTask.objects.get_or_create(pk=key, defaults=defaults)
             if not created:
                 for name, value in defaults.iteritems():
                     setattr(obj, name, value)
-            obj.save()
-
-        workers = self.state.workers
-        for key in workers.keys():
-            worker = workers[key]
-            defaults = {
-                'name': worker.hostname,
-                'alive': worker.alive
-            }
-            obj, created = CeleryWorker.objects.get_or_create(pk=key, defaults=defaults)
-            if not created:
-                for name, value in defaults.iteritems():
-                    setattr(obj, name, value)
-            obj.save()
+                obj.save()

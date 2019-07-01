@@ -13,4 +13,4 @@ class CeleryTask(models.Model):
     uuid = models.UUIDField("UUID", primary_key=True)
     name = models.CharField("Name", max_length=512)
     state = models.CharField("State", max_length=32)
-    worker = models.CharField("Worker", max_length=512)
+    worker = models.ForeignKey(CeleryWorker, verbose_name="Worker")

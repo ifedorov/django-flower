@@ -9,4 +9,5 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         events = Events(settings.app)
+        events.enable_events()
         events.run()
