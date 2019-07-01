@@ -124,7 +124,7 @@ class RedisBase(BrokerBase):
                 'name': name,
                 'messages': sum([self.redis.llen(x) for x in priority_names])
             })
-        raise queue_stats
+        return queue_stats
 
 
 class Redis(RedisBase):

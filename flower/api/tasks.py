@@ -399,20 +399,21 @@ Return length of all active queues
 :statuscode 503: result backend is not configured
         """
         app = self.capp
-        broker_options = self.capp.conf.BROKER_TRANSPORT_OPTIONS
+        broker_options = app.conf.BROKER_TRANSPORT_OPTIONS
         http_api = None
 
-        if app.transport == 'amqp' and app.options.broker_api:
+        from celery.backends.amqp import AMQPBackend
+        if isinstance(app.backend, AMQPBackend) == 'amqp' and self.settings.broker_api:
             http_api = app.options.broker_api
 
-        broker = Broker(app.capp.connection().as_uri(include_password=True),
+        broker = Broker(app.connection().as_uri(include_password=True),
                         http_api=http_api, broker_options=broker_options)
 
         queue_names = ControlHandler.get_active_queue_names()
 
         if not queue_names:
-            queue_names = set([self.capp.conf.CELERY_DEFAULT_QUEUE]) |\
-                        set([q.name for q in self.capp.conf.CELERY_QUEUES or [] if q.name])
+            queue_names = set([app.conf.CELERY_DEFAULT_QUEUE]) |\
+                          set([q.name for q in app.conf.CELERY_QUEUES or [] if q.name])
 
         queues = broker.queues(sorted(queue_names))
         return self.write({'active_queues': queues})
