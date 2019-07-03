@@ -26,3 +26,5 @@ env
 venv
 *.retry
 .cache/
+djproject/db.sqlite3
+flower/migrations
