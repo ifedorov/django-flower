@@ -509,7 +509,8 @@ List tasks
 :statuscode 200: no error
 :statuscode 401: unauthorized request
         """
-        app = self.capp
+        app_state = self.settings.state
+
         limit = self.get_argument('limit', None)
         worker = self.get_argument('workername', None)
         type = self.get_argument('taskname', None)
@@ -524,7 +525,7 @@ List tasks
 
         result = []
         for task_id, task in tasks.iter_tasks(
-                app.events, limit=limit, type=type,
+                app_state, limit=limit, type=type,
                 worker=worker, state=state,
                 received_start=received_start,
                 received_end=received_end):
