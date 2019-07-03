@@ -761,7 +761,7 @@ var flower = (function () {
             colReorder: true,
             ajax: {
                 type: 'POST',
-                url: url_prefix() + '/tasks/datatable'
+                url: url_prefix() + '/tasks/datatable/'
             },
             order: [
                 [7, "asc"]

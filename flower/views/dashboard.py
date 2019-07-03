@@ -9,7 +9,7 @@ from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views.generic import View
 
-from flower.models import CeleryWorker
+from flower.events import Events
 from ..api.workers import ListWorkers
 from ..views import BaseHandler
 
@@ -25,6 +25,8 @@ class DashboardView(BaseHandler):
 
         app = self.settings.app
 
+        events = Events.get_remote_state()
+
         if refresh:
             try:
                 return JsonResponse(list(ListWorkers.update_workers(settings=self.settings)))
@@ -32,25 +34,17 @@ class DashboardView(BaseHandler):
                 logger.exception('Failed to update workers: %s', e)
 
         workers = {}
-        for worker in CeleryWorker.objects.enabled():
-            info = {'active': worker.active}
-            for event in worker.celeryevent_set.all():
-                info.update({
-                    event.event: event.counter,
-                    'status': worker.status
-                })
-            workers[worker.name] = info
+        for name, values in events.counter.items():
+            if name not in events.workers:
+                continue
+            worker = events.workers[name]
+            info = dict(values)
+            info.update(self._as_dict(worker))
+            info.update(status=worker.alive)
+            workers[name] = info
 
         if json:
-            data = []
-            for key in workers:
-                worker = workers[key].copy()
-                worker.setdefault('name', key)
-                worker.setdefault('loadavg', 0)
-                worker.setdefault('hostname', worker['name'])
-                worker['active'] = 1 if worker['active'] else 0
-                data.append(worker)
-            response = JsonResponse(dict(data=data))
+            return self.write(dict(data=list(workers.values())))
         else:
             broker = app.connection().as_uri()
 
@@ -78,8 +72,7 @@ class DashboardView(BaseHandler):
                 broker=broker,
                 workers=workers
             )
-            response = self.render("flower/dashboard.html", context)
-        return response
+            return self.render("flower/dashboard.html", context)
 
     @classmethod
     def _as_dict(cls, worker):

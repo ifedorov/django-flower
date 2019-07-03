@@ -6,14 +6,11 @@ import logging
 import time
 
 import gevent.monkey
-
-gevent.monkey.patch_all()
-
+import rpyc
 from celery.events import EventReceiver
 from celery.events.state import State
-from rpyc.utils.server import GeventServer
 from rpyc.utils.helpers import classpartial
-import rpyc
+from rpyc.utils.server import GeventServer
 
 try:
     from collections import Counter
@@ -58,17 +55,26 @@ class EventsState(State):
 
 class Events(object):
 
+    rpc_port = 6005
+    rpc_conn = None
+
     def __init__(self, app, options):
         self.state = EventsState()
         self.options = options
         self.app = app
         self.server = None
 
+    @classmethod
+    def get_remote_state(cls):
+        if cls.rpc_conn is None:
+            cls.rpc_conn = rpyc.classic.connect("localhost", port=cls.rpc_port)
+        return cls.rpc_conn.root.state
+
     def start_rpc(self):
         service = classpartial(CeleryStateService, self.state)
         self.server = GeventServer(service,
                                    hostname='localhost',
-                                   port=6002,
+                                   port=self.rpc_port,
                                    auto_register=False)
         self.server._listen()
         gevent.spawn(self.server.start)

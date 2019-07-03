@@ -1,6 +1,8 @@
 from __future__ import absolute_import
 
+import copy
 import inspect
+import json
 import re
 import traceback
 from base64 import b64decode
@@ -13,6 +15,7 @@ from django.urls import reverse
 from django.utils.functional import cached_property
 from django.utils.six import string_types
 from django.views.generic import View
+from rpyc import BaseNetref
 
 from flower.exceptions import HTTPError
 from flower.options import options
@@ -42,8 +45,16 @@ class BaseHandler(View):
                       context=context,
                       using=self.template_engine)
 
+    @staticmethod
+    def json_default(o):
+        if isinstance(o, BaseNetref):
+            o = copy.deepcopy(o)
+            return json.dumps(o)
+
     def write(self, data):
-        return JsonResponse(data, safe=False)
+        return JsonResponse(data, safe=False, json_dumps_params={
+            'default': self.json_default
+        })
 
     def write_error(self, status_code, **kwargs):
         if status_code in (404, 403):
