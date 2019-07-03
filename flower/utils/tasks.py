@@ -5,7 +5,6 @@ import time
 
 from celery.events.state import Task
 
-from flower.models import CeleryTask
 from .search import satisfies_search_terms, parse_search_terms
 
 
@@ -28,16 +27,16 @@ def iter_tasks(app_state, limit=None, type=None, worker=None, state=None,
             continue
         if state and task.state != state:
             continue
-        if received_start and task.received and\
+        if received_start and task.received and \
                 task.received < convert(received_start):
             continue
-        if received_end and task.received and\
+        if received_end and task.received and \
                 task.received > convert(received_end):
             continue
-        if started_start and task.started and\
+        if started_start and task.started and \
                 task.started < convert(started_start):
             continue
-        if started_end and task.started and\
+        if started_end and task.started and \
                 task.started > convert(started_end):
             continue
         if not satisfies_search_terms(task, search_terms):
