@@ -2,9 +2,9 @@ from __future__ import absolute_import
 
 import copy
 import inspect
-import json
 import re
 import traceback
+import warnings
 from base64 import b64decode
 from distutils.util import strtobool
 
@@ -47,11 +47,12 @@ class BaseHandler(View):
 
     @staticmethod
     def json_default(o):
-        if isinstance(o, BaseNetref):
-            o = copy.deepcopy(o)
-            return json.dumps(o)
+        warnings.warn("json dumps (%s)" % (o,), stacklevel=0)
 
     def write(self, data):
+        # convert to local scope
+        if isinstance(data, BaseNetref):
+            data = copy.deepcopy(data)
         return JsonResponse(data, safe=False, json_dumps_params={
             'default': self.json_default
         })

@@ -761,7 +761,12 @@ var flower = (function () {
             colReorder: true,
             ajax: {
                 type: 'POST',
-                url: url_prefix() + '/tasks/datatable/'
+                url: url_prefix() + '/tasks/datatable/',
+                beforeSend: function (xhr, settings) {
+                    if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                        xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+                    }
+                },
             },
             order: [
                 [7, "asc"]

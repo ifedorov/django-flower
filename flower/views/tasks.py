@@ -26,7 +26,7 @@ class TaskView(BaseHandler):
     @method_decorator(login_required)
     def get(self, task_id):
         try:
-            task = get_task_by_id(task_id)
+            task = get_task_by_id(self.settings.state, task_id)
         except Exception:
             raise HTTPError(404, "Unknown task '%s'" % task_id)
 
@@ -56,8 +56,9 @@ class Comparable(object):
 class TasksDataTable(BaseHandler):
 
     @method_decorator(login_required)
-    def get(self):
-        app = self.settings.app
+    def get(self, request):
+        state = self.settings.state
+
         draw = self.get_argument('draw', type=int)
         start = self.get_argument('start', type=int)
         length = self.get_argument('length', type=int)
@@ -71,7 +72,7 @@ class TasksDataTable(BaseHandler):
             return Comparable(getattr(item[1], sort_by))
 
         sorted_tasks = sorted(
-            iter_tasks(app.events, search=search),
+            iter_tasks(state, search=search),
             key=key,
             reverse=sort_order
         )
@@ -84,13 +85,13 @@ class TasksDataTable(BaseHandler):
 
             filtered_tasks.append(task_dict)
 
-        self.write(dict(draw=draw, data=filtered_tasks,
-                        recordsTotal=len(sorted_tasks),
-                        recordsFiltered=len(sorted_tasks)))
+        return self.write(dict(draw=draw, data=filtered_tasks,
+                          recordsTotal=len(sorted_tasks),
+                          recordsFiltered=len(sorted_tasks)))
 
     @method_decorator(login_required)
-    def post(self):
-        return self.get()
+    def post(self, request):
+        return self.get(request)
 
     def format_task(self, args):
         uuid, task = args
@@ -113,17 +114,13 @@ class TasksView(BaseHandler):
         if app.conf.CELERY_TIMEZONE:
             time += '-' + str(app.conf.CELERY_TIMEZONE)
 
-        state = self.get_argument("state", default=None)
-        filters = {}
-        if state:
-            filters['state'] = state
-        fields = (
-            "uuid",
-            "name",
-            "state",
-            "worker__name")
+        state_config = self.get_argument("state", default=None)
+
+        state = self.settings.state
+        tasks = state.tasks
+
         context = dict(
-            tasks=CeleryWorker.objects.tasks_values(fields, filters=filters),
+            tasks=tasks.values(),
             columns=settings.tasks_columns,
             time=time,
         )

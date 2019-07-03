@@ -633,7 +633,7 @@ Get a task info
 :statuscode 404: unknown task
         """
 
-        task = tasks.get_task_by_id(taskid)
+        task = tasks.get_task_by_id(self.settings.state, taskid)
         if not task:
             raise HTTPError(404, "Unknown task '%s'" % taskid)
 
