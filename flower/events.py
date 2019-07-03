@@ -5,10 +5,15 @@ import collections
 import logging
 import time
 
+import gevent.monkey
+
+gevent.monkey.patch_all()
+
 from celery.events import EventReceiver
 from celery.events.state import State
-
-from flower.models import CeleryWorker, CeleryTask, CeleryEvent
+from rpyc.utils.server import GeventServer
+from rpyc.utils.helpers import classpartial
+import rpyc
 
 try:
     from collections import Counter
@@ -16,6 +21,16 @@ except ImportError:
     from .utils.backports.collections import Counter
 
 logger = logging.getLogger(__name__)
+
+
+class CeleryStateService(rpyc.SlaveService):
+
+    def __init__(self, state):
+        super(CeleryStateService, self).__init__()
+        self.state = state
+
+    def exposed_get_state(self):
+        return self.state
 
 
 class EventsState(State):
@@ -43,11 +58,24 @@ class EventsState(State):
 
 class Events(object):
 
-    def __init__(self, app):
+    def __init__(self, app, options):
         self.state = EventsState()
+        self.options = options
         self.app = app
+        self.server = None
 
-    def run(self, ):
+    def start_rpc(self):
+        service = classpartial(CeleryStateService, self.state)
+        self.server = GeventServer(service,
+                                   hostname='localhost',
+                                   port=6002,
+                                   auto_register=False)
+        self.server._listen()
+        gevent.spawn(self.server.start)
+        return self.server
+
+    def run(self):
+        self.start_rpc()
         try_interval = 1
         while True:
             try:
@@ -80,44 +108,3 @@ class Events(object):
         if not self.state.event_count:
             # No new events since last snapshot.
             return
-
-        def new_worker(worker):
-            defaults = {
-                'active': worker.alive,
-                'status': worker.status_string,
-                'name': worker.hostname,
-                'enabled': True
-            }
-            return CeleryWorker.objects.update_or_create(pk=worker.id,
-                                                         defaults=defaults)
-
-        db_workers = []
-        workers = self.state.workers
-        for key in workers.keys():
-            worker = workers[key]
-            worker, created = new_worker(worker)
-            event_counter = self.state.counter.get(worker.name)
-            db_workers.append(worker.pk)
-            for name, value in event_counter.iteritems():
-                CeleryEvent.objects.update_or_create(worker=worker, event=name,
-                                                     defaults={'counter': value})
-        # disable dead instances
-        CeleryWorker.objects.exclude(pk__in=db_workers).update(
-            active=False, enabled=False,
-            status='OFFLINE')
-
-        tasks = self.state.tasks
-        for key in tasks.keys():
-            task = tasks[key]
-            if task.name is None:
-                continue
-            worker = task.worker
-            worker, created = new_worker(worker)
-            if not created:
-                worker.save()
-            defaults = {
-                'name': task.name,
-                'state': task.state,
-                'worker': worker
-            }
-            CeleryTask.objects.update_or_create(pk=key, defaults=defaults)
