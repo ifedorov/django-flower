@@ -4,7 +4,6 @@ import copy
 import inspect
 import re
 import traceback
-import warnings
 from base64 import b64decode
 from distutils.util import strtobool
 

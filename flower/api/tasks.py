@@ -568,9 +568,8 @@ List (seen) task types
 :statuscode 200: no error
 :statuscode 401: unauthorized request
         """
-        tasks_sets = CeleryWorker.objects.tasks_sets()
-        seen_task_types = CeleryTask.objects.union(*tuple(tasks_sets)).values("name").distinct()
-        response = {'task-types': [obj['name'] for obj in seen_task_types]}
+        seen_task_types = self.settings.state.task_types()
+        response = {'task-types': seen_task_types}
         return self.write(response)
 
 
