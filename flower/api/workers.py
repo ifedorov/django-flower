@@ -160,10 +160,9 @@ List workers
         workername = self.get_argument('workername', default=None)
 
         if status:
-            info = list(CeleryWorker.enabled().values_list(
-                "name",
-                "active"
-            ))
+            info = {}
+            for name, worker in self.settings.state.workers.items():
+                info[name] = worker.alive
             return self.write(info)
 
         if self.worker_cache and not refresh and workername in self.worker_cache:

@@ -2,25 +2,20 @@ from __future__ import absolute_import
 
 import json
 import logging
-
 from datetime import datetime
 
+from celery import states
+from celery.backends.base import DisabledBackend
+from celery.contrib.abortable import AbortableAsyncResult
+from celery.result import AsyncResult
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 
-from celery import states
-from celery.result import AsyncResult
-from celery.contrib.abortable import AbortableAsyncResult
-from celery.backends.base import DisabledBackend
-
 from flower.exceptions import HTTPError
-from flower.models import CeleryTask, CeleryWorker
-from ..utils import tasks
-from ..views import BaseHandler
-from ..utils.broker import Broker
 from ..api.control import ControlHandler
-import json
-
+from ..utils import tasks
+from ..utils.broker import Broker
+from ..views import BaseHandler
 
 logger = logging.getLogger(__name__)
 
