@@ -5,6 +5,8 @@ import types
 from celery import current_app
 from django.conf import settings
 
+from flower.events import Events
+
 
 class Options(object):
 
@@ -18,6 +20,10 @@ class Options(object):
     def define(self, name, default=None, **kwargs):
         value = getattr(settings, self.namespace_with(name), default)
         setattr(self, name, value)
+
+    @property
+    def state(self):
+        return Events.get_remote_state()
 
 
 options = Options('flower')

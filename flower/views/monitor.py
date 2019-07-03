@@ -24,15 +24,17 @@ class SucceededTaskMonitor(BaseHandler):
     def get(self, request):
         timestamp = self.get_argument('lastquery', type=float)
 
-        state = self.settings.app.events.State()
+        state = self.settings.state
 
         data = defaultdict(int)
-        for _, task in state.itertasks():
+        for task_key in state.tasks.keys():
+            task = state.tasks[task_key]
             if timestamp < task.timestamp and task.state == states.SUCCESS:
                 data[task.worker.hostname] += 1
-        for worker in state.workers:
+        for worker_key in state.workers.keys():
+            worker = state.workers[worker_key]
             if worker not in data:
-                data[worker] = 0
+                data[worker_key] = 0
 
         return self.write(data)
 
@@ -42,12 +44,13 @@ class TimeToCompletionMonitor(BaseHandler):
     @method_decorator(login_required)
     def get(self, request):
         timestamp = self.get_argument('lastquery', type=float)
-        state = self.settings.app.events.State()
+        state = self.settings.state
 
         execute_time = 0
         queue_time = 0
         num_tasks = 0
-        for _, task in state.itertasks():
+        for task_key in state.tasks.keys():
+            task = state.tasks[task_key]
             if timestamp < task.timestamp and task.state == states.SUCCESS:
                 # eta can make "time in queue" look really scary.
                 if task.eta is not None:
@@ -76,15 +79,17 @@ class FailedTaskMonitor(BaseHandler):
     @method_decorator(login_required)
     def get(self, request):
         timestamp = self.get_argument('lastquery', type=float)
-        state = self.settings.app.events.State()
+        state = self.settings.state
 
         data = defaultdict(int)
-        for _, task in state.itertasks():
+        for task_key in state.tasks.keys():
+            task = state.tasks[task_key]
             if timestamp < task.timestamp and task.state == states.FAILURE:
                 data[task.worker.hostname] += 1
-        for worker in state.workers:
+        for worker_key in state.workers.keys():
+            worker = state.workers[worker_key]
             if worker not in data:
-                data[worker] = 0
+                data[worker_key] = 0
 
         return self.write(data)
 

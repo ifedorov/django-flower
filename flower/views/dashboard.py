@@ -24,8 +24,7 @@ class DashboardView(BaseHandler):
         json = self.get_argument('json', default=False, type=bool)
 
         app = self.settings.app
-
-        events = Events.get_remote_state()
+        events = self.settings.state
 
         if refresh:
             try:
