@@ -11,13 +11,13 @@
       <div class="span12">
         <div class="page-header">
           <p id="taskid" class="hidden">{{ task.uuid }}</p>
-          <h2>{{ getattr(task, 'name', None) }}
+          <h2>{{ task.name }}
             <small>{{ task.uuid }}</small>
             {% if task.state == "STARTED" %}
                 <button style="float: right" class="btn btn-danger" onclick="flower.on_task_terminate(event)">Terminate</button>
             {% elif task.state == "RECEIVED" or task.state == "RETRY" %}
                 <button  style="float: right" class="btn btn-danger" onclick="flower.on_task_revoke(event)">Revoke</button>
-            {% endblock %}
+            {% endif %}
           </h2>
         </div>
         <div class="row-fluid">
@@ -27,7 +27,7 @@
               <tbody>
               <tr>
                 <td>Name</td>
-                <td>{{ getattr(task, 'name', None) }}</td>
+                <td>{{ task.name }}</td>
               </tr>
               <tr>
                 <td>UUID</td>
@@ -55,7 +55,7 @@
               </tr>
               <tr>
                 <td>Result</td>
-                <td>{{ getattr(task, 'result', '') }}</td>
+                <td>{{ task.result or "" }}</td>
               </tr>
               </tbody>
             </table>
@@ -66,22 +66,23 @@
               <caption>Advanced task options</caption>
               <tbody>
               {% for name in task._fields %}
-                {% if name not in ['name', 'uuid', 'state', 'args', 'kwargs', 'result'] and getattr(task, name, None) is not None %}
+                {% set task_attr = task|attr(name) %}
+                {% if name not in ['name', 'uuid', 'state', 'args', 'kwargs', 'result'] and task_attr != None %}
                 <tr>
                   <td>{{ humanize(name) }}</td>
                   <td>
                     {% if name in ['sent', 'received', 'started', 'succeeded', 'retried', 'timestamp', 'failed'] %}
-                    {{ humanize(getattr(task, name, None), type='time') }}
+                    {{ humanize(task_attr, type='time') }}
                     {% elif name == 'worker' %}
                     <a
                         href="{{ url('flower:worker', task.worker.hostname) }}">{{ task.worker.hostname }}</a>
                     {% elif name == 'traceback' %}
-                    <pre>{{ getattr(task, name, None) }}</pre>
+                    <pre>{{ task_attr }}</pre>
                     {% elif name in ['parent_id', 'root_id'] %}
                     <a
-                        href="{{ url('flower:task', getattr(task, name, None)) }}">{{ getattr(task, name, None) }}</a>
+                        href="{{ url('flower:task', task_attr) }}">{{ task_attr }}</a>
                     {% else %}
-                      {{ getattr(task, name, None) }}
+                      {{ task_attr }}
                     {% endif %}
                   </td>
                 </tr>

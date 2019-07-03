@@ -24,13 +24,13 @@ logger = logging.getLogger(__name__)
 class TaskView(BaseHandler):
 
     @method_decorator(login_required)
-    def get(self, task_id):
+    def get(self, request, task_id):
         try:
             task = get_task_by_id(self.settings.state, task_id)
         except Exception:
             raise HTTPError(404, "Unknown task '%s'" % task_id)
 
-        self.render("task.html", context={'task': task})
+        return self.render("flower/task.html", context={'task': task})
 
 
 @total_ordering
