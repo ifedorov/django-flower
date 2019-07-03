@@ -1,22 +1,17 @@
 from __future__ import absolute_import
 
-#import os
-
 from django.conf.urls import url, include
 from django.views.decorators.cache import never_cache
 
-from .api import events
 from .api import control
 from .api import tasks
 from .api import workers
-# from .views import auth
 from .views import monitor
 from .views.broker import BrokerView
-from .views.workers import WorkerView
-from .views.tasks import TaskView, TasksView, TasksDataTable
+from .views.dashboard import DashboardView
 from .views.error import NotFoundErrorHandler
-from .views.dashboard import DashboardView, DashboardUpdateHandler
-#from .utils import gen_cookie_secret
+from .views.tasks import TaskView, TasksView, TasksDataTable
+from .views.workers import WorkerView
 
 
 ns_urlpatterns = ([
