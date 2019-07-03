@@ -86,7 +86,41 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
             ],
         },
-    },
+    }, {
+        'BACKEND': 'django_jinja.backend.Jinja2',
+        'NAME': "jinja2",  # template alias
+        'DIRS': [os.path.join(BASE_DIR, "templates")],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            "environment": "jinja2.Environment",
+            "match_extension": None,
+            "filters": {},
+            "globals": {},
+            "constants": {},
+            "extensions": [
+                "jinja2.ext.do",
+                "jinja2.ext.loopcontrols",
+                "jinja2.ext.with_",
+                "jinja2.ext.i18n",
+                "jinja2.ext.autoescape",
+                "django_jinja.builtins.extensions.CsrfExtension",
+                "django_jinja.builtins.extensions.CacheExtension",
+                "django_jinja.builtins.extensions.TimezoneExtension",
+                "django_jinja.builtins.extensions.UrlsExtension",
+                "django_jinja.builtins.extensions.StaticFilesExtension",
+                "django_jinja.builtins.extensions.DjangoFiltersExtension",
+            ],
+            "context_processors": [
+                "django.contrib.auth.context_processors.auth",
+                "django.template.context_processors.debug",
+                "django.template.context_processors.i18n",
+                "django.template.context_processors.media",
+                "django.template.context_processors.static",
+                "django.template.context_processors.tz",
+                "django.contrib.messages.context_processors.messages",
+            ],
+        },
+    }
 ]
 
 WSGI_APPLICATION = 'djproject.wsgi.application'
