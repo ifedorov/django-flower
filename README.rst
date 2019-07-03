@@ -1,3 +1,12 @@
+Django Celery Flower
+====================
+Project converted to Django.
+
+`flower_events` - is a django command that serves as a backend and should run in the background.
+
+```python manage.py flower_events```
+
+
 Celery Flower
 =============
 
