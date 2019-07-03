@@ -6,7 +6,6 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 
 from flower.exceptions import HTTPError
-from flower.models import CeleryWorker
 from .control import ControlHandler
 
 logger = logging.getLogger(__name__)
