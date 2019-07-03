@@ -8,7 +8,6 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 
 from flower.exceptions import HTTPError
-from flower.models import CeleryWorker
 
 try:
     from itertools import imap
@@ -117,10 +116,9 @@ class TasksView(BaseHandler):
         state_config = self.get_argument("state", default=None)
 
         state = self.settings.state
-        tasks = state.tasks
-
+        tasks = [x[1] for x in state.itertasks(5)]
         context = dict(
-            tasks=tasks.values(),
+            tasks=tasks,
             columns=settings.tasks_columns,
             time=time,
         )
