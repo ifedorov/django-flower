@@ -47,12 +47,12 @@ class BaseHandler(View):
 
     @staticmethod
     def json_default(o):
-        warnings.warn("json dumps (%s)" % (o,), stacklevel=0)
+        """netref as local data"""
+        if isinstance(o, BaseNetref):
+            o = copy.deepcopy(o)
+        return o
 
     def write(self, data):
-        # convert to local scope
-        if isinstance(data, BaseNetref):
-            data = copy.deepcopy(data)
         return JsonResponse(data, safe=False, json_dumps_params={
             'default': self.json_default
         })
