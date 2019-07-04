@@ -9,6 +9,8 @@ import gevent.monkey
 import rpyc
 from celery.events import EventReceiver
 from celery.events.state import State
+from rpyc.utils import factory
+from rpyc.utils.classic import DEFAULT_SERVER_PORT
 from rpyc.utils.helpers import classpartial
 from rpyc.utils.server import GeventServer
 
@@ -20,7 +22,7 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
-class CeleryStateService(rpyc.SlaveService):
+class CeleryStateService(rpyc.Service):
 
     def __init__(self, state):
         super(CeleryStateService, self).__init__()
@@ -28,6 +30,12 @@ class CeleryStateService(rpyc.SlaveService):
 
     def exposed_get_state(self):
         return self.state
+
+    def on_connect(self, conn):
+        conn._config.update({
+            'allow_public_attrs': True,
+            'allow_pickle': True
+        })
 
 
 class EventsState(State):
@@ -53,6 +61,24 @@ class EventsState(State):
         return super(EventsState, self).event(event)
 
 
+class RpcClient(object):
+
+    def __init__(self, service):
+        self.service = service
+
+    def connect(self, host, port=DEFAULT_SERVER_PORT, ipv6=False, keepalive=False):
+        """
+        Creates a socket connection to the given host and port.
+
+        :param host: the host to connect to
+        :param port: the TCP port
+        :param ipv6: whether to create an IPv6 socket or IPv4
+
+        :returns: an RPyC connection exposing ``Service``
+        """
+        return factory.connect(host, port, self.service, ipv6=ipv6, keepalive=keepalive)
+
+
 class Events(object):
 
     rpc_port = 6005
@@ -64,15 +90,16 @@ class Events(object):
         self.app = app
         self.server = None
 
-    @classmethod
-    def get_remote_state(cls):
-        if cls.rpc_conn is None:
-            cls.rpc_conn = rpyc.classic.connect("localhost", port=cls.rpc_port)
-        return cls.rpc_conn.root.state
+        self.service = classpartial(CeleryStateService, self.state)
+        self.client = RpcClient(self.service)
+
+    def get_remote_state(self):
+        if self.rpc_conn is None:
+            self.rpc_conn = self.client.connect("localhost", port=self.rpc_port)
+        return self.rpc_conn.root.get_state()
 
     def start_rpc(self):
-        service = classpartial(CeleryStateService, self.state)
-        self.server = GeventServer(service,
+        self.server = GeventServer(self.service,
                                    hostname='localhost',
                                    port=self.rpc_port,
                                    auto_register=False)

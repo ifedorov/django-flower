@@ -23,7 +23,7 @@ class Options(object):
 
     @property
     def state(self):
-        return Events.get_remote_state()
+        return Events(self.app, self).get_remote_state()
 
 
 options = Options('flower')
