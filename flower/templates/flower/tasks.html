@@ -59,7 +59,7 @@
             {{ '%.2f' % humanize(task.timestamp - task.started) }} sec
         {% endif %}
       </td>
-      <td>{{ task.worker__name }}</td>
+      <td>{{ task.worker.hostname }}</td>
       <td>{{ task.exchange }}</td>
       <td>{{ task.routing_key }}</td>
       <td>{{ task.retries }}</td>
