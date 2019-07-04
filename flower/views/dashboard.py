@@ -9,7 +9,6 @@ from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views.generic import View
 
-from flower.events import Events
 from ..api.workers import ListWorkers
 from ..views import BaseHandler
 
@@ -48,7 +47,7 @@ class DashboardView(BaseHandler):
             broker = app.connection().as_uri()
 
             def lazy_alive_workers():
-                return len(filter(lambda x: x.get('active'), workers.values()))
+                return sum(map(lambda x: x.get('active') or 0, workers.values()))
 
             def lazy_task_received():
                 return sum(map(lambda x: x.get('task-received') or 0, workers.values()))
