@@ -671,7 +671,7 @@ var flower = (function () {
     });
 
     $(document).ready(function () {
-        if (!active_page('/') && !active_page('/dashboard')) {
+        if (!active_page('/') && !active_page('/dashboard/')) {
             return;
         }
 
@@ -683,7 +683,7 @@ var flower = (function () {
             scrollX: true,
             scrollY: true,
             scrollCollapse: true,
-            ajax: url_prefix() + '/dashboard?json=1',
+            ajax: url_prefix() + '/dashboard/?json=1',
             order: [
                 [1, "asc"]
             ],
