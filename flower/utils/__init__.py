@@ -1,8 +1,10 @@
 from __future__ import absolute_import
 
-import uuid
 import base64
 import os.path
+import uuid
+
+from django.contrib.auth.decorators import user_passes_test
 
 from .. import __version__
 
@@ -39,3 +41,8 @@ def abs_path(path):
 
 def prepend_url(url, prefix):
     return '/' + prefix.strip('/') + url
+
+
+def login_required_admin(func_view):
+    """Allows only administrator login"""
+    return user_passes_test(lambda u: u.is_superuser)(func_view)

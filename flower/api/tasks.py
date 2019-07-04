@@ -8,7 +8,7 @@ from celery import states
 from celery.backends.base import DisabledBackend
 from celery.contrib.abortable import AbortableAsyncResult
 from celery.result import AsyncResult
-from django.contrib.auth.decorators import login_required
+from flower.utils import login_required_admin
 from django.utils.decorators import method_decorator
 
 from flower.exceptions import HTTPError
@@ -76,7 +76,7 @@ class BaseTaskHandler(BaseHandler):
 
 class TaskApply(BaseTaskHandler):
 
-    @method_decorator(login_required)
+    @method_decorator(login_required_admin)
     def post(self, request, taskname):
         """
 Execute a task by name and wait results
@@ -149,7 +149,7 @@ Execute a task by name and wait results
 class TaskAsyncApply(BaseTaskHandler):
     DATE_FORMAT = '%Y-%m-%d %H:%M:%S.%f'
 
-    @method_decorator(login_required)
+    @method_decorator(login_required_admin)
     def post(self, request, taskname):
         """
 Execute a task
@@ -214,7 +214,7 @@ Execute a task
 
 class TaskSend(BaseTaskHandler):
 
-    @method_decorator(login_required)
+    @method_decorator(login_required_admin)
     def post(self, request, taskname):
         """
 Execute a task by name (doesn't require task sources)
@@ -267,7 +267,7 @@ Execute a task by name (doesn't require task sources)
 
 class TaskResult(BaseTaskHandler):
 
-    @method_decorator(login_required)
+    @method_decorator(login_required_admin)
     def get(self, request, taskid):
         """
 Get a task result
@@ -319,7 +319,7 @@ Get a task result
 
 class TaskAbort(BaseTaskHandler):
 
-    @method_decorator(login_required)
+    @method_decorator(login_required_admin)
     def post(self, request, taskid):
         """
 Abort a running task
@@ -361,7 +361,7 @@ Abort a running task
 
 class GetQueueLengths(BaseTaskHandler):
 
-    @method_decorator(login_required)
+    @method_decorator(login_required_admin)
     def get(self, request):
         """
 Return length of all active queues
@@ -416,7 +416,7 @@ Return length of all active queues
 
 class ListTasks(BaseTaskHandler):
 
-    @method_decorator(login_required)
+    @method_decorator(login_required_admin)
     def get(self, request):
         """
 List tasks
@@ -533,7 +533,7 @@ List tasks
 
 class ListTaskTypes(BaseTaskHandler):
 
-    @method_decorator(login_required)
+    @method_decorator(login_required_admin)
     def get(self, request, *args, **kwargs):
         """
 List (seen) task types
@@ -571,7 +571,7 @@ List (seen) task types
 
 class TaskInfo(BaseTaskHandler):
 
-    @method_decorator(login_required)
+    @method_decorator(login_required_admin)
     def get(self, request, taskid):
         """
 Get a task info

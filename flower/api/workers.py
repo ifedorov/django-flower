@@ -2,7 +2,7 @@ from __future__ import absolute_import
 
 import logging
 
-from django.contrib.auth.decorators import login_required
+from flower.utils import login_required_admin
 from django.utils.decorators import method_decorator
 
 from flower.exceptions import HTTPError
@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 class ListWorkers(ControlHandler):
 
-    @method_decorator(login_required)
+    @method_decorator(login_required_admin)
     def get(self, request):
         """
 List workers

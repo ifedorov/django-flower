@@ -4,7 +4,7 @@ import collections
 import logging
 import time
 
-from django.contrib.auth.decorators import login_required
+from flower.utils import login_required_admin
 from django.http import Http404, JsonResponse, HttpResponse
 from django.utils.decorators import method_decorator
 
@@ -76,7 +76,7 @@ class ControlHandler(BaseHandler):
 
 class WorkerShutDown(ControlHandler):
 
-    @method_decorator(login_required)
+    @method_decorator(login_required_admin)
     def post(self, request, workername):
         """
 Shut down a worker
@@ -116,7 +116,7 @@ Shut down a worker
 
 class WorkerPoolRestart(ControlHandler):
 
-    @method_decorator(login_required)
+    @method_decorator(login_required_admin)
     def post(self, request, workername):
         """
 Restart worker's pool
@@ -165,7 +165,7 @@ Restart worker's pool
 
 class WorkerPoolGrow(ControlHandler):
 
-    @method_decorator(login_required)
+    @method_decorator(login_required_admin)
     def post(self, request, workername):
         """
 Grow worker's pool
@@ -217,7 +217,7 @@ Grow worker's pool
 
 class WorkerPoolShrink(ControlHandler):
 
-    @method_decorator(login_required)
+    @method_decorator(login_required_admin)
     def post(self, request, workername):
         """
 Shrink worker's pool
@@ -271,7 +271,7 @@ Shrink worker's pool
 
 class WorkerPoolAutoscale(ControlHandler):
 
-    @method_decorator(login_required)
+    @method_decorator(login_required_admin)
     def post(self, request, workername):
         """
 Autoscale worker pool
@@ -330,7 +330,7 @@ Autoscale worker pool
 
 class WorkerQueueAddConsumer(ControlHandler):
 
-    @method_decorator(login_required)
+    @method_decorator(login_required_admin)
     def post(self, request, workername):
         """
 Start consuming from a queue
@@ -384,7 +384,7 @@ Start consuming from a queue
 
 class WorkerQueueCancelConsumer(ControlHandler):
 
-    @method_decorator(login_required)
+    @method_decorator(login_required_admin)
     def post(self, request, workername):
         """
 Stop consuming from a queue
@@ -439,7 +439,7 @@ Stop consuming from a queue
 
 class TaskRevoke(ControlHandler):
 
-    @method_decorator(login_required)
+    @method_decorator(login_required_admin)
     def post(self, request, taskid):
         """
 Revoke a task
@@ -480,7 +480,7 @@ Revoke a task
 
 class TaskTimout(ControlHandler):
 
-    @method_decorator(login_required)
+    @method_decorator(login_required_admin)
     def post(self, request, taskname):
         """
 Change soft and hard time limits for a task
@@ -540,7 +540,7 @@ Change soft and hard time limits for a task
 
 class TaskRateLimit(ControlHandler):
 
-    @method_decorator(login_required)
+    @method_decorator(login_required_admin)
     def post(self, request, taskname):
         """
 Change rate limit for a task

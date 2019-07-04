@@ -3,7 +3,7 @@ from __future__ import absolute_import
 from collections import defaultdict
 
 from celery import states
-from django.contrib.auth.decorators import login_required
+from flower.utils import login_required_admin
 from django.utils.decorators import method_decorator
 
 from ..views import BaseHandler
@@ -13,14 +13,14 @@ from ..api.control import ControlHandler
 
 class Monitor(BaseHandler):
 
-    @method_decorator(login_required)
+    @method_decorator(login_required_admin)
     def get(self, request):
         return self.render("flower/monitor.html")
 
 
 class SucceededTaskMonitor(BaseHandler):
 
-    @method_decorator(login_required)
+    @method_decorator(login_required_admin)
     def get(self, request):
         timestamp = self.get_argument('lastquery', type=float)
 
@@ -41,7 +41,7 @@ class SucceededTaskMonitor(BaseHandler):
 
 class TimeToCompletionMonitor(BaseHandler):
 
-    @method_decorator(login_required)
+    @method_decorator(login_required_admin)
     def get(self, request):
         timestamp = self.get_argument('lastquery', type=float)
         state = self.settings.state
@@ -76,7 +76,7 @@ class TimeToCompletionMonitor(BaseHandler):
 
 class FailedTaskMonitor(BaseHandler):
 
-    @method_decorator(login_required)
+    @method_decorator(login_required_admin)
     def get(self, request):
         timestamp = self.get_argument('lastquery', type=float)
         state = self.settings.state
@@ -96,7 +96,7 @@ class FailedTaskMonitor(BaseHandler):
 
 class BrokerMonitor(BaseHandler):
 
-    @method_decorator(login_required)
+    @method_decorator(login_required_admin)
     def get(self, request):
         app = self.settings.app
         try:

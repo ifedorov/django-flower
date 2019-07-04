@@ -4,7 +4,7 @@ import copy
 import logging
 from functools import total_ordering
 
-from django.contrib.auth.decorators import login_required
+from flower.utils import login_required_admin
 from django.utils.decorators import method_decorator
 
 from flower.exceptions import HTTPError
@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 class TaskView(BaseHandler):
 
-    @method_decorator(login_required)
+    @method_decorator(login_required_admin)
     def get(self, request, task_id):
         try:
             task = get_task_by_id(self.settings.state, task_id)
@@ -54,7 +54,7 @@ class Comparable(object):
 
 class TasksDataTable(BaseHandler):
 
-    @method_decorator(login_required)
+    @method_decorator(login_required_admin)
     def get(self, request):
         state = self.settings.state
 
@@ -88,7 +88,7 @@ class TasksDataTable(BaseHandler):
                           recordsTotal=len(sorted_tasks),
                           recordsFiltered=len(sorted_tasks)))
 
-    @method_decorator(login_required)
+    @method_decorator(login_required_admin)
     def post(self, request):
         return self.get(request)
 
@@ -105,7 +105,7 @@ class TasksDataTable(BaseHandler):
 
 class TasksView(BaseHandler):
 
-    @method_decorator(login_required)
+    @method_decorator(login_required_admin)
     def get(self, request, *args, **kwargs):
         settings = self.settings
         app = settings.app

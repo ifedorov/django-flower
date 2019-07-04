@@ -4,7 +4,7 @@ import logging
 import sys
 
 import kombu.exceptions
-from django.contrib.auth.decorators import login_required
+from flower.utils import login_required_admin
 from django.utils.decorators import method_decorator
 
 from ..api.control import ControlHandler
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 class BrokerView(BaseHandler):
 
-    @method_decorator(login_required)
+    @method_decorator(login_required_admin)
     def get(self, request):
         app = self.capp
         broker_options = app.conf.BROKER_TRANSPORT_OPTIONS

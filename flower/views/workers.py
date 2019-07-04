@@ -2,7 +2,7 @@ from __future__ import absolute_import
 
 import logging
 
-from django.contrib.auth.decorators import login_required
+from flower.utils import login_required_admin
 from django.utils.decorators import method_decorator
 
 from ..api.workers import ListWorkers
@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 class WorkerView(BaseHandler):
 
-    @method_decorator(login_required)
+    @method_decorator(login_required_admin)
     def get(self, request, name):
         try:
             ListWorkers.update_workers(settings=self.settings,

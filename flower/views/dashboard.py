@@ -6,7 +6,7 @@ import sys
 from collections import OrderedDict
 from functools import partial
 
-from django.contrib.auth.decorators import login_required
+from flower.utils import login_required_admin
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views.generic import View
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 class DashboardView(BaseHandler):
 
-    @method_decorator(login_required)
+    @method_decorator(login_required_admin)
     def get(self, request, *args, **kwargs):
         refresh = self.get_argument('refresh', default=False, type=bool)
         json = self.get_argument('json', default=False, type=bool)
