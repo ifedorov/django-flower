@@ -13,4 +13,5 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         events = Events(settings.app, settings)
+        events.enable_events()
         events.run()
