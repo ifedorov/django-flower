@@ -45,13 +45,16 @@ classifiers = [s.strip() for s in classes.split('\n') if s]
 
 
 setup(
-    name='flower',
+    name='django-flower',
     version=get_package_version(),
     description='Celery Flower',
     long_description=open('README.rst').read(),
-    author='Mher Movsisyan',
-    author_email='mher.movsisyan@gmail.com',
-    url='https://github.com/mher/flower',
+    # original
+    # author='Mher Movsisyan',
+    # author_email='mher.movsisyan@gmail.com',
+    author='alex',
+    author_email='alex@fabricadigital.com.br',
+    url='https://github.com/alexsilva/django-flower',
     license='BSD',
     classifiers=classifiers,
     packages=find_packages(exclude=['tests', 'tests.*']),
@@ -60,12 +63,5 @@ setup(
     tests_require=get_requirements('test.txt'),
     package_data={'flower': ['templates/*', 'static/*.*',
                              'static/**/*.*', 'static/**/**/*.*']},
-    entry_points={
-        'console_scripts': [
-            'flower = flower.__main__:main',
-        ],
-        'celery.commands': [
-            'flower = flower.command:FlowerCommand',
-        ],
-    },
+    # entry_points={},
 )
