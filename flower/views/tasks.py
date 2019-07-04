@@ -112,13 +112,9 @@ class TasksView(BaseHandler):
         time = 'natural-time' if settings.natural_time else 'time'
         if app.conf.CELERY_TIMEZONE:
             time += '-' + str(app.conf.CELERY_TIMEZONE)
-
-        state_config = self.get_argument("state", default=None)
-
-        state = self.settings.state
-        tasks = [x[1] for x in state.itertasks(5)]
+        # state_config = self.get_argument("state", default=None)
         context = dict(
-            tasks=tasks,
+            tasks=[],
             columns=settings.tasks_columns,
             time=time,
         )
