@@ -4,6 +4,7 @@ import types
 
 from celery import current_app
 from django.conf import settings
+from rpyc.utils.classic import DEFAULT_SERVER_PORT
 
 from flower.events import Events
 
@@ -30,6 +31,10 @@ options = Options('flower')
 
 options.define("inspect_timeout", default=1000, type=float,
                help="inspect timeout (in milliseconds)")
+options.define("rpc_host", default='localhost', type=str,
+               help="port used by rpc backend (int)")
+options.define("rpc_port", default=DEFAULT_SERVER_PORT, type=int,
+               help="port used by rpc backend (int)")
 options.define("auth", default='', type=str,
                help="regexp of emails to grant access")
 options.define("basic_auth", type=str, default=None, multiple=True,
