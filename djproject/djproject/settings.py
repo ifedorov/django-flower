@@ -28,7 +28,7 @@ SECRET_KEY = '6z7v&0jun*!xox)$vmeq**cbp$82ifr)989uh7ph!$s67m&$#%'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 CELERY_TASK_SERIALIZER = 'pickle'
 CELERY_RESULT_SERIALIZER = 'pickle'
