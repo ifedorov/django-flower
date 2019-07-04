@@ -67,7 +67,7 @@ class BaseHandler(View):
             for line in traceback.format_exception(*kwargs['exc_info']):
                 error_trace += line
 
-            response = self.render('error.html', context=dict(
+            response = self.render('flower/error.html', context=dict(
                 debug=self.settings.debug,
                 status_code=status_code,
                 error_trace=error_trace,

@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "flower/base.html" %}
 
 {% block container %}
     {% if debug %}
@@ -16,5 +16,5 @@
     <div class="span12">
         Error {{ status_code }}
     </div>
-    {% end %}
-{% end %}
+    {% endif %}
+{% endblock %}
