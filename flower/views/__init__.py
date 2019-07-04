@@ -30,7 +30,7 @@ class BaseHandler(View):
         self.url_prefix = reverse("flower:main").rstrip(' / ')
         self.settings = options
 
-    def render(self, template_name, context=None):
+    def render(self, template_name, context=None, **kwargs):
         if context is None:
             context = {}
         functions = inspect.getmembers(template, inspect.isfunction)
@@ -42,7 +42,8 @@ class BaseHandler(View):
         })
         return render(self.request, template_name,
                       context=context,
-                      using=self.template_engine)
+                      using=self.template_engine,
+                      **kwargs)
 
     @staticmethod
     def json_default(o):
@@ -67,7 +68,7 @@ class BaseHandler(View):
                 debug=self.settings.debug,
                 status_code=status_code,
                 message=kwargs.get('message')
-            ))
+            ), status=status_code)
         elif status_code == 401:
             response = HttpResponse('Access denied', status=status_code)
             response['WWW-Authenticate'] = 'Basic realm="flower"'
