@@ -6,15 +6,61 @@ Project converted to Django.
 
 ``python manage.py flower_events``
 
+Django settings variable:
+
+`FLOWER_RPC_HOST`
+
+`FLOWER_RPC_PORT`
+
+`FLOWER_INSPECT_TIMEOUT`
+
+`FLOWER_AUTH`
+
+`FLOWER_BASIC_AUTH`
+
+`FLOWER_OAUTH2_KEY`
+
+`FLOWER_OAUTH2_SECRET`
+
+`FLOWER_OAUTH2_REDIRECT_URI`
+
+`FLOWER_MAX_WORKERS`
+
+`FLOWER_MAX_TASKS`
+
+`FLOWER_DB`
+
+`FLOWER_PERSISTENT`
+
+`FLOWER_BROKER_API`
+
+`FLOWER_CA_CERTS`
+
+`FLOWER_CERTFILE`
+
+`FLOWER_KEYFILE`
+
+`FLOWER_XHEADERS`
+
+`FLOWER_AUTO_REFRESH`
+
+`FLOWER_COOKIE_SECRET`
+
+`FLOWER_ENABLE_EVENTS`
+
+`FLOWER_FORMAT_TASK`
+
+`FLOWER_NATURAL_TIME`
+
+`FLOWER_TASKS_COLUMNS`
+
+`FLOWER_AUTH_PROVIDER`
+
+`FLOWER_INSPECT`
+
 
 Celery Flower
 =============
-
-.. image:: https://img.shields.io/pypi/v/flower.svg
-    :target: https://pypi.python.org/pypi/flower
-
-.. image:: https://travis-ci.org/mher/flower.svg?branch=master
-        :target: https://travis-ci.org/mher/flower
 
 Flower is a web based tool for monitoring and administrating Celery clusters.
 
@@ -48,8 +94,8 @@ Features
 - HTTP API
 - Basic Auth and Google OpenID authentication
 
-API
----
+API  (TODO)
+-----------
 
 Flower API enables to manage the cluster via REST API, call tasks and
 receive task events in real-time via WebSockets.
@@ -85,31 +131,25 @@ Installation
 
 PyPI version: ::
 
-    $ pip install flower
+    $ pip install django-flower
 
 Development version: ::
 
-    $ pip install https://github.com/mher/flower/zipball/master
+    $ pip install https://github.com/alexsilva/django-flower/zipball/master
 
 Usage
 -----
 
-Launch the server and open http://localhost:5555: ::
+Add app flower to django installed apps: ::
 
-    $ flower --port=5555
+    INSTALLED_APPS = [
+        ...
+        'flower'
+    ]
 
-Or launch from celery: ::
+Run the event command: ::
 
-    $ celery flower -A proj --address=127.0.0.1 --port=5555
-
-Broker URL and other configuration options can be passed through the standard Celery options: ::
-
-    $ celery flower -A proj --broker=amqp://guest:guest@localhost:5672//
-
-Or run with unix socket file: ::
-
-    $ flower --unix_socket=/tmp/flower.sock
-
+    $ python manage flower_events
 
 Documentation
 -------------
