@@ -1,66 +1,5 @@
 Django Celery Flower
 ====================
-Project converted to Django.
-
-`flower_events` - is a django command that serves as a backend and should run in the background.
-
-``python manage.py flower_events``
-
-Django settings variable:
-
-`FLOWER_RPC_HOST`
-
-`FLOWER_RPC_PORT`
-
-`FLOWER_INSPECT_TIMEOUT`
-
-`FLOWER_AUTH`
-
-`FLOWER_BASIC_AUTH`
-
-`FLOWER_OAUTH2_KEY`
-
-`FLOWER_OAUTH2_SECRET`
-
-`FLOWER_OAUTH2_REDIRECT_URI`
-
-`FLOWER_MAX_WORKERS`
-
-`FLOWER_MAX_TASKS`
-
-`FLOWER_DB`
-
-`FLOWER_PERSISTENT`
-
-`FLOWER_BROKER_API`
-
-`FLOWER_CA_CERTS`
-
-`FLOWER_CERTFILE`
-
-`FLOWER_KEYFILE`
-
-`FLOWER_XHEADERS`
-
-`FLOWER_AUTO_REFRESH`
-
-`FLOWER_COOKIE_SECRET`
-
-`FLOWER_ENABLE_EVENTS`
-
-`FLOWER_FORMAT_TASK`
-
-`FLOWER_NATURAL_TIME`
-
-`FLOWER_TASKS_COLUMNS`
-
-`FLOWER_AUTH_PROVIDER`
-
-`FLOWER_INSPECT`
-
-
-Celery Flower
-=============
 
 Flower is a web based tool for monitoring and administrating Celery clusters.
 
@@ -154,10 +93,42 @@ Run the event command: ::
 Documentation
 -------------
 
-Documentation is available at `Read the Docs`_ and `IPython Notebook Viewer`_
+Everything that needs to be configured in the `sample project`_
 
-.. _Read the Docs: https://flower.readthedocs.io
-.. _IPython Notebook Viewer: http://nbviewer.ipython.org/urls/raw.github.com/mher/flower/master/docs/api.ipynb
+.. _`sample project`: https://github.com/alexsilva/django-flower/blob/master/djproject
+
+`flower_events`_ - is a django command that serves as a backend and should run in the background.
+
+.. _`flower_events`: https://github.com/alexsilva/django-flower/blob/master/flower/management/commands/flower_events.py
+
+Django settings variable: ::
+
+    FLOWER_RPC_HOST
+    FLOWER_RPC_PORT
+    FLOWER_INSPECT_TIMEOUT
+    FLOWER_AUTH
+    FLOWER_BASIC_AUTH
+    FLOWER_OAUTH2_KEY
+    FLOWER_OAUTH2_SECRET
+    FLOWER_OAUTH2_REDIRECT_URI
+    FLOWER_MAX_WORKERS
+    FLOWER_MAX_TASKS
+    FLOWER_DB
+    FLOWER_PERSISTENT
+    FLOWER_BROKER_API
+    FLOWER_CA_CERTS
+    FLOWER_CERTFILE
+    FLOWER_KEYFILE
+    FLOWER_XHEADERS
+    FLOWER_AUTO_REFRESH
+    FLOWER_COOKIE_SECRET
+    FLOWER_ENABLE_EVENTS
+    FLOWER_FORMAT_TASK
+    FLOWER_NATURAL_TIME
+    FLOWER_TASKS_COLUMNS
+    FLOWER_AUTH_PROVIDER
+    FLOWER_INSPECT
+
 
 License
 -------
@@ -182,5 +153,5 @@ Make sure you add yourself to CONTRIBUTORS_.
 
 If you are interested in maintaining the project please contact.
 
-.. _`the repository`: https://github.com/mher/flower
-.. _CONTRIBUTORS: https://github.com/mher/flower/blob/master/CONTRIBUTORS
+.. _`the repository`: https://github.com/alexsilva/django-flower
+.. _CONTRIBUTORS: https://github.com/alexsilva/django-flower/blob/master/CONTRIBUTORS
