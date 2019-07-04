@@ -41,12 +41,23 @@ def satisfies_search_terms(task, search_terms):
     if not any([any_value_search_term, result_search_term, args_search_terms, kwargs_search_terms, state_search_terms]):
         return True
 
+    if any_value_search_term:
+        regex_term_filtered = []
+        for term in [task.name, task.uuid, task.state,
+                     task.worker.hostname if task.worker else None,
+                     task.args, task.kwargs, safe_str(task.result)]:
+            if term in (None, 'None'):
+                continue
+            regex_term_filtered.append(term)
+
+        search_match = re.search("(?:%s)" % re.escape(any_value_search_term),
+                                 '|'.join(regex_term_filtered),
+                                 re.I | re.U)
+    else:
+        search_match = None
     terms = [
         state_search_terms and task.state in state_search_terms,
-        any_value_search_term and any_value_search_term in '|'.join(
-            filter(None, [task.name, task.uuid, task.state,
-                          task.worker.hostname if task.worker else None,
-                          task.args, task.kwargs, safe_str(task.result)])),
+        any_value_search_term and search_match,
         result_search_term and result_search_term in task.result,
         kwargs_search_terms and all(
             stringified_dict_contains_value(k, v, task.kwargs) for k, v in kwargs_search_terms.items()
