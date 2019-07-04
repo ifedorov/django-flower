@@ -58,17 +58,26 @@ class BaseHandler(View):
         })
 
     def write_error(self, status_code, **kwargs):
+        error_trace = ""
+        if 'exc_info' in kwargs:
+            for line in traceback.format_exception(*kwargs['exc_info']):
+                error_trace += line
+
         if status_code in (404, 403):
-            message = None
-            if 'exc_info' in kwargs and kwargs['exc_info'][0] == Http404:
-                message = kwargs['exc_info'][1].log_message
-            response = self.render('flower/404.html', context={'message': message})
+            message = kwargs.get('message')
+            response = self.render('flower/404.html', context=dict(
+                message=message,
+                error_trace=error_trace
+            ), status=status_code)
         elif status_code == 500:
+            message = kwargs.get('message')
             response = self.render('flower/error.html', context=dict(
                 debug=self.settings.debug,
                 status_code=status_code,
-                message=kwargs.get('message')
+                error_trace=error_trace,
+                message=message
             ), status=status_code)
+
         elif status_code == 401:
             response = HttpResponse('Access denied', status=status_code)
             response['WWW-Authenticate'] = 'Basic realm="flower"'

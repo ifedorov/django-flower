@@ -2,6 +2,7 @@ from __future__ import absolute_import
 
 import logging
 import socket
+import sys
 from collections import OrderedDict
 from functools import partial
 
@@ -28,7 +29,8 @@ class DashboardView(BaseHandler):
         try:
             events = self.settings.state
         except socket.error:
-            return self.write_error(500, message='RPC connection failed')
+            return self.write_error(500, message='RPC connection failed',
+                                    exc_info=sys.exc_info())
 
         if refresh:
             try:

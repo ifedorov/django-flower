@@ -5,7 +5,6 @@ import logging
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 
-from flower.exceptions import HTTPError
 from ..api.workers import ListWorkers
 from ..views import BaseHandler
 
@@ -25,9 +24,11 @@ class WorkerView(BaseHandler):
         worker = ListWorkers.worker_cache.get(name)
 
         if worker is None:
-            raise HTTPError(404, "Unknown worker '%s'" % name)
+            return self.write_error(404, message="Unknown worker '%s'" % name)
+
         if 'stats' not in worker:
-            raise HTTPError(404, "Unable to get stats for '%s' worker" % name)
+            return self.write_error(404, message="Unable to get stats for '%s' worker" % name)
+
         context = {
             'worker': dict(worker, name=name)
         }

@@ -1,11 +1,12 @@
 from __future__ import absolute_import
 
 import logging
+import sys
 
+import kombu.exceptions
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 
-from flower.exceptions import HTTPError
 from ..api.control import ControlHandler
 from ..utils.broker import Broker
 from ..views import BaseHandler
@@ -29,16 +30,22 @@ class BrokerView(BaseHandler):
             broker = Broker(app.connection().as_uri(include_password=True),
                             http_api=http_api, broker_options=broker_options)
         except NotImplementedError:
-            raise HTTPError(404, "'%s' broker is not supported" % app.transport)
+            return self.write_error(404, message="'%s' broker is not supported" % app.transport)
 
+        # noinspection PyBroadException
         try:
             queue_names = ControlHandler.get_active_queue_names()
             if not queue_names:
-                queue_names = set([app.conf.CELERY_DEFAULT_QUEUE]) | \
+                queue_names = {app.conf.CELERY_DEFAULT_QUEUE} | \
                               set([q.name for q in app.conf.CELERY_QUEUES or [] if q.name])
             queues = list(broker.queues(sorted(queue_names)))
-        except Exception as e:
-            raise HTTPError(404, "Unable to get queues: '%s'" % e)
+
+        except kombu.exceptions.OperationalError as e:
+            return self.write_error(500, message="Unable to connect to broker",
+                                    exc_info=sys.exc_info())
+        except Exception:
+            return self.write_error(500, message="Unable to get queues",
+                                    exc_info=sys.exc_info())
 
         return self.render("flower/broker.html",
                            context={
