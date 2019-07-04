@@ -34,7 +34,8 @@ class CeleryStateService(rpyc.Service):
     def on_connect(self, conn):
         conn._config.update({
             'allow_public_attrs': True,
-            'allow_pickle': True
+            'allow_pickle': True,
+            'allow_all_attrs': True
         })
 
 
