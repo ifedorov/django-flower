@@ -16,7 +16,7 @@ class Options(object):
         self.app = current_app
 
     def namespace_with(self, name):
-        return self.namespace + name.upper()
+        return self.namespace + "_" + name.upper()
 
     def define(self, name, default=None, **kwargs):
         value = getattr(settings, self.namespace_with(name), default)
