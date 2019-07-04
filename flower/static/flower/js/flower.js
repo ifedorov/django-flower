@@ -551,9 +551,9 @@ var flower = (function () {
         return true;
     }
 
-    $.urlParam = function (name) {
+    $.urlParam = function (name, _default) {
         var results = new RegExp('[\\?&]' + name + '=([^&#]*)').exec(window.location.href);
-        return (results && results[1]) || 0;
+        return (results && results[1]) || _default || 0;
     };
 
     $(document).ready(function () {
@@ -734,8 +734,7 @@ var flower = (function () {
                 }
             }, ],
         });
-
-        var autorefresh = $.urlParam('autorefresh') || 1;
+        var autorefresh = $.urlParam('autorefresh', 2);
         if (autorefresh !== 0) {
             setInterval( function () {
                 $('#workers-table').DataTable().ajax.reload();
