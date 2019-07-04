@@ -63,15 +63,10 @@ class BaseHandler(View):
                 message = kwargs['exc_info'][1].log_message
             response = self.render('flower/404.html', context={'message': message})
         elif status_code == 500:
-            error_trace = ""
-            for line in traceback.format_exception(*kwargs['exc_info']):
-                error_trace += line
-
             response = self.render('flower/error.html', context=dict(
                 debug=self.settings.debug,
                 status_code=status_code,
-                error_trace=error_trace,
-                bugreport=bugreport()
+                message=kwargs.get('message')
             ))
         elif status_code == 401:
             response = HttpResponse('Access denied', status=status_code)

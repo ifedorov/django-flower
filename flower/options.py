@@ -43,6 +43,8 @@ options.define("oauth2_key", type=str, default=None,
                help="OAuth2 key (requires --auth)")
 options.define("oauth2_secret", type=str, default=None,
                help="OAuth2 secret (requires --auth)")
+options.define("debug", default=settings.DEBUG,
+               help="run in debug mode", type=bool)
 options.define("oauth2_redirect_uri", type=str, default=None,
                help="OAuth2 redirect uri (requires --auth)")
 options.define("max_workers", type=int, default=5000,

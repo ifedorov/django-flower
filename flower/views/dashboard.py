@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 
 import logging
+import socket
 from collections import OrderedDict
 from functools import partial
 
@@ -21,9 +22,13 @@ class DashboardView(BaseHandler):
     def get(self, request, *args, **kwargs):
         refresh = self.get_argument('refresh', default=False, type=bool)
         json = self.get_argument('json', default=False, type=bool)
-
         app = self.settings.app
-        events = self.settings.state
+
+        # When rpc fails to connect (check the flower_events command is running).
+        try:
+            events = self.settings.state
+        except socket.error:
+            return self.write_error(500, message='RPC connection failed')
 
         if refresh:
             try:
