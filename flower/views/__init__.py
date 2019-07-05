@@ -119,7 +119,7 @@ class BaseHandler(View):
         if type is not None:
             try:
                 if type is bool:
-                    arg = strtobool(str(arg))
+                    arg = type(strtobool(str(arg)))
                 else:
                     arg = type(arg)
             except (ValueError, TypeError):
