@@ -47,7 +47,7 @@ classifiers = [s.strip() for s in classes.split('\n') if s]
 setup(
     name='django-flower',
     version=get_package_version(),
-    description='Celery Flower',
+    description='Django Celery Flower',
     long_description=open('README.rst').read(),
     # original
     # author='Mher Movsisyan',
