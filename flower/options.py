@@ -29,6 +29,8 @@ class Options(object):
 
 options = Options('flower')
 
+options.define("login_url", default=settings.LOGIN_URL, type=str,
+               help="login url (settings.LOGIN_URL)")
 options.define("inspect_timeout", default=1000, type=float,
                help="inspect timeout (in milliseconds)")
 options.define("rpc_host", default='localhost', type=str,
