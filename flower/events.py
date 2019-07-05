@@ -103,7 +103,8 @@ class Events(object):
         self.server = GeventServer(self.service,
                                    hostname=self.options.rpc_host,
                                    port=self.options.rpc_port,
-                                   auto_register=False)
+                                   auto_register=False,
+                                   logger=logger)
         self.server._listen()
         gevent.spawn(self.server.start)
         return self.server
