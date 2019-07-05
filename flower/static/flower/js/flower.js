@@ -93,7 +93,7 @@ var flower = (function () {
 
         $.ajax({
             type: 'GET',
-            url: url_prefix() + '/api/workers',
+            url: url_prefix() + '/api/workers/',
             dataType: 'json',
             cache: false,
             data: {
@@ -577,7 +577,7 @@ var flower = (function () {
             });
         });
 
-        if (active_page('/monitor')) {
+        if (active_page('/monitor/')) {
             var sts = current_unix_time(),
                 fts = current_unix_time(),
                 tts = current_unix_time(),
@@ -589,7 +589,7 @@ var flower = (function () {
 
             $.ajax({
                 type: 'GET',
-                url: url_prefix() + '/monitor/succeeded-tasks',
+                url: url_prefix() + '/monitor/succeeded-tasks/',
                 data: {
                     lastquery: current_unix_time()
                 },
@@ -600,7 +600,7 @@ var flower = (function () {
                     succeeded_graph.series.setTimeInterval(updateinterval);
                     setInterval(function () {
                         update_graph(succeeded_graph,
-                            url_prefix() + '/monitor/succeeded-tasks',
+                            url_prefix() + '/monitor/succeeded-tasks/',
                             sts);
                         sts = current_unix_time();
                     }, updateinterval);
@@ -610,7 +610,7 @@ var flower = (function () {
 
             $.ajax({
                 type: 'GET',
-                url: url_prefix() + '/monitor/completion-time',
+                url: url_prefix() + '/monitor/completion-time/',
                 data: {
                     lastquery: current_unix_time()
                 },
@@ -621,7 +621,7 @@ var flower = (function () {
                     time_graph.series.setTimeInterval(updateinterval);
                     setInterval(function () {
                         update_graph(time_graph,
-                            url_prefix() + '/monitor/completion-time',
+                            url_prefix() + '/monitor/completion-time/',
                             tts);
                         tts = current_unix_time();
                     }, updateinterval);
@@ -631,7 +631,7 @@ var flower = (function () {
 
             $.ajax({
                 type: 'GET',
-                url: url_prefix() + '/monitor/failed-tasks',
+                url: url_prefix() + '/monitor/failed-tasks/',
                 data: {
                     lastquery: current_unix_time()
                 },
@@ -642,7 +642,7 @@ var flower = (function () {
                     failed_graph.series.setTimeInterval(updateinterval);
                     setInterval(function () {
                         update_graph(failed_graph,
-                            url_prefix() + '/monitor/failed-tasks',
+                            url_prefix() + '/monitor/failed-tasks/',
                             fts);
                         fts = current_unix_time();
                     }, updateinterval);
@@ -652,7 +652,7 @@ var flower = (function () {
 
             $.ajax({
                 type: 'GET',
-                url: url_prefix() + '/monitor/broker',
+                url: url_prefix() + '/monitor/broker/',
                 success: function (data) {
                     broker_graph = create_graph(data, '-broker');
                     broker_graph.update();
@@ -660,7 +660,7 @@ var flower = (function () {
                     broker_graph.series.setTimeInterval(updateinterval);
                     setInterval(function () {
                         update_graph(broker_graph,
-                            url_prefix() + '/monitor/broker');
+                            url_prefix() + '/monitor/broker/');
                     }, updateinterval);
 
                 },
@@ -745,7 +745,7 @@ var flower = (function () {
     });
 
     $(document).ready(function () {
-        if (!active_page('/tasks')) {
+        if (!active_page('/tasks/')) {
             return;
         }
 
