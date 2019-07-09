@@ -50,7 +50,7 @@ class ControlHandler(BaseHandler):
                     info = cls.worker_cache[worker]
                     info[method] = response
                     info['timestamp'] = time.time()
-        return all(results.values())
+        return results
 
     def is_worker(self, workername):
         return workername and workername in self.worker_cache
