@@ -3,15 +3,21 @@ from __future__ import absolute_import
 import collections
 import logging
 import time
+from multiprocessing.pool import ThreadPool
 
-from flower.utils import login_required_admin
 from django.http import Http404, JsonResponse, HttpResponse
 from django.utils.decorators import method_decorator
 
 from flower.exceptions import HTTPError
+from flower.utils import login_required_admin
 from ..views import BaseHandler
 
 logger = logging.getLogger(__name__)
+
+
+def inspect_method_async(method):
+    """Asynchronous results"""
+    return method()
 
 
 class ControlHandler(BaseHandler):
@@ -29,21 +35,24 @@ class ControlHandler(BaseHandler):
     def update_workers(cls, settings, workername=None):
         logger.debug("Updating %s worker's cache...", workername or 'all')
 
-        results = {}
         app = settings.app
         destination = [workername] if workername else None
         timeout = settings.inspect_timeout / 1000.0
         inspect = app.control.inspect(timeout=timeout,
                                       destination=destination)
+
+        pool = ThreadPool(len(cls.INSPECT_METHODS))
+        methods = []
         for method in cls.INSPECT_METHODS:
-            result = getattr(inspect, method)()
-            if result is None:
-                logger.warning("'%s' inspect method failed", method)
-            results[method] = result
+            methods.append(getattr(inspect, method))
+
+        results = pool.map(inspect_method_async, methods)
+        results = dict(zip(cls.INSPECT_METHODS, results))
 
         for method in results:
             result = results[method]
             if result is None:
+                logger.warning("'%s' inspect method failed", method)
                 continue
             for worker, response in result.iteritems():
                 if response is not None:
