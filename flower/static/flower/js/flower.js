@@ -278,7 +278,7 @@ var flower = (function () {
             success: function (data) {
                 show_success_alert(data.message);
                 setTimeout(function () {
-                    $('#tab-queues').load('/worker/' + workername + ' #tab-queues').fadeIn('show');
+                    $('#tab-queues').load(url_prefix() + '/worker/' + workername + ' #tab-queues').fadeIn('show');
                 }, 10000);
             },
             error: function (data) {
