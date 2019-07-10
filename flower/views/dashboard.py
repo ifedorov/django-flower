@@ -6,11 +6,10 @@ import sys
 from collections import OrderedDict
 from functools import partial
 
-from flower.utils import login_required_admin
-from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views.generic import View
 
+from flower.utils import login_required_admin
 from ..api.workers import ListWorkers
 from ..views import BaseHandler
 
@@ -34,8 +33,7 @@ class DashboardView(BaseHandler):
 
         if refresh:
             try:
-                return JsonResponse(ListWorkers.update_workers(settings=self.settings),
-                                    safe=False)
+                ListWorkers.update_workers(settings=self.settings)
             except Exception as e:
                 logger.exception('Failed to update workers: %s', e)
 

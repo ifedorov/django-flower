@@ -1,11 +1,11 @@
 from __future__ import absolute_import
 
 import logging
+import sys
 
-from flower.utils import login_required_admin
 from django.utils.decorators import method_decorator
 
-from flower.exceptions import HTTPError
+from flower.utils import login_required_admin
 from .control import ControlHandler
 
 logger = logging.getLogger(__name__)
@@ -169,16 +169,14 @@ List workers
 
         if refresh:
             try:
-                result = self.update_cache(workername=workername)
-                assert result, 'refresh failed'
-                return self.write({'messages': 'Refreshed'})
+                return self.write(self.update_cache(workername=workername))
             except Exception as e:
                 msg = "Failed to update workers: %s" % e
                 logger.error(msg)
-                raise HTTPError(503, msg)
+                return self.write_error(503, message=msg, exc_info=sys.exc_info())
 
         if workername and not self.is_worker(workername):
-            raise HTTPError(404, "Unknown worker '%s'" % workername)
+            return self.write_error(404, message="Unknown worker '%s'" % workername)
 
         if workername:
             response = self.write({workername: self.worker_cache[workername]})

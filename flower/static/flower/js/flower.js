@@ -767,8 +767,8 @@ var flower = (function () {
                 }
             }, ],
         });
-        var autorefresh = $.urlParam('autorefresh', 2);
-        if (autorefresh !== 0) {
+        var autorefresh = parseInt($.urlParam('autorefresh', 2), 10);
+        if (autorefresh !== 0 && !isNaN(autorefresh)) {
             setInterval( function () {
                 $('#workers-table').DataTable().ajax.reload();
                 update_dashboard_counters();
