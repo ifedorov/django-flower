@@ -84,6 +84,73 @@ class ControlHandler(BaseHandler):
         return queues
 
 
+class WorkerQueuePurge(ControlHandler):
+
+    @method_decorator(login_required_admin)
+    def post(self, request, queues):
+        """
+Shut down a worker
+
+**Example request**:
+
+.. sourcecode:: http
+
+  POST /api/worker/queue/purge/queues HTTP/1.1
+  Content-Length: 0
+  Host: localhost:5555
+
+**Example response**:
+
+.. sourcecode:: http
+
+  HTTP/1.1 200 OK
+  Content-Length: 29
+  Content-Type: application/json; charset=UTF-8
+
+  {
+      "message": "Purge 0 messages from 'queues'"
+  }
+
+:reqheader Authorization: optional OAuth token to authenticate
+:statuscode 200: no error
+:statuscode 401: unauthorized request
+:statuscode 404: unknown worker
+        """
+        logger.info("Purge queues '%s", queues)
+
+        total = self.purge(queues)
+
+        logger.info("Purge total %d messages", total)
+
+        return JsonResponse(dict(message="Purge %d messages from '%s'" % (total, queues)))
+
+    def purge(self, queues=None, connection=None):
+        """Discard all waiting tasks.
+
+        This will ignore all tasks waiting for execution, and they will
+        be deleted from the messaging server.
+
+        Arguments:
+            connection (kombu.Connection): Optional specific connection
+                instance to use.  If not provided a connection will
+                be acquired from the connection pool.
+
+        Returns:
+            int: the number of tasks discarded.
+        """
+        app = self.capp.control.app
+        queues = queues.split(',')
+
+        with app.connection_for_write() as conn:
+            return sum(self._purge(conn, queue) for queue in queues)
+
+    def _purge(self, conn, queue):
+        try:
+            return conn.default_channel.queue_purge(queue) or 0
+        except conn.channel_errors:
+            return 0
+
+
 class WorkerShutDown(ControlHandler):
 
     @method_decorator(login_required_admin)

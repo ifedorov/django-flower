@@ -21,6 +21,7 @@
             <th>Ready</th>
             <th>Consumers</th>
             <th>Idle since</th>
+            <th></th>
         </tr>
       </thead>
       <tbody>
@@ -32,6 +33,11 @@
             <td>{{ queue.get('messages_ready', 'N/A') }}</td>
             <td>{{ queue.get('consumers', 'N/A') }}</td>
             <td>{{ queue.get('idle_since', 'N/A') }}</td>
+            <td>
+                <button data-queue="{{ queue['name'] }}" class="btn btn-danger"
+                        onclick="flower.on_worker_queue_purge(event, this)">
+                    Purge</button>
+            </td>
         </tr>
       {% endfor %}
       </tbody>

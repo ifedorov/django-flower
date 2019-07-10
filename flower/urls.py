@@ -33,6 +33,7 @@ ns_urlpatterns = ([
     url(r"^api/worker/pool/autoscale/(.+)", control.WorkerPoolAutoscale.as_view()),
     url(r"^api/worker/queue/add-consumer/(.+)", control.WorkerQueueAddConsumer.as_view()),
     url(r"^api/worker/queue/cancel-consumer/(.+)", control.WorkerQueueCancelConsumer.as_view()),
+    url(r"^api/worker/queue/purge/(.+)", control.WorkerQueuePurge.as_view()),
 
     # Task API
     url(r"^api/tasks/$", tasks.ListTasks.as_view()),

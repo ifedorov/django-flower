@@ -153,6 +153,28 @@ var flower = (function () {
         });
     }
 
+    function on_worker_queue_purge(event, element) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        var queues = $(element).attr("data-queue");
+
+        $.ajax({
+            type: 'POST',
+            url: url_prefix() + '/api/worker/queue/purge/' + queues,
+            dataType: 'json',
+            data: {
+                queues: queues
+            },
+            success: function (data) {
+                show_success_alert(data.message);
+            },
+            error: function (data) {
+                show_error_alert(data.responseText);
+            }
+        });
+    }
+
     function on_pool_grow(event) {
         event.preventDefault();
         event.stopPropagation();
@@ -887,6 +909,7 @@ var flower = (function () {
 
     return {
         on_alert_close: on_alert_close,
+        on_worker_queue_purge: on_worker_queue_purge,
         on_worker_refresh: on_worker_refresh,
         on_worker_pool_restart: on_worker_pool_restart,
         on_worker_shutdown: on_worker_shutdown,
