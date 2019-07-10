@@ -157,7 +157,8 @@ var flower = (function () {
         event.preventDefault();
         event.stopPropagation();
 
-        var queues = $(element).attr("data-queue");
+        var $ele = $(element);
+        var queues = $ele.attr("data-queue");
 
         $.ajax({
             type: 'POST',
@@ -166,12 +167,22 @@ var flower = (function () {
             data: {
                 queues: queues
             },
+            beforeSend: function(xhr, settings) {
+                var retval = true;
+                if($.ajaxSettings.hasOwnProperty('beforeSend')) {
+                    retval = $.ajaxSettings.beforeSend(xhr, settings);
+                }
+                $ele.attr("disabled", "disabled");
+                return retval;
+            },
             success: function (data) {
                 show_success_alert(data.message);
             },
             error: function (data) {
                 show_error_alert(data.responseText);
             }
+        }).always(function () {
+            $ele.removeAttr("disabled");
         });
     }
 
