@@ -124,16 +124,14 @@ Shut down a worker
 
         return JsonResponse(dict(message="Purge %d messages from '%s'" % (total, queues)))
 
-    def purge(self, queues=None, connection=None):
+    def purge(self, queues):
         """Discard all waiting tasks.
 
         This will ignore all tasks waiting for execution, and they will
         be deleted from the messaging server.
 
         Arguments:
-            connection (kombu.Connection): Optional specific connection
-                instance to use.  If not provided a connection will
-                be acquired from the connection pool.
+            :param queues: queue list
 
         Returns:
             int: the number of tasks discarded.
