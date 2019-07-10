@@ -704,10 +704,11 @@ var flower = (function () {
     });
 
     $(document).ready(function () {
-        if (!active_page('/') && !active_page('/dashboard/')) {
+        var dashboard_api_url = '/dashboard/';
+        if (!active_page('/') && !active_page(dashboard_api_url)) {
             return;
         }
-
+        dashboard_api_url = url_prefix() + dashboard_api_url;
         $('#workers-table').DataTable({
             rowId: 'name',
             searching: true,
@@ -716,7 +717,12 @@ var flower = (function () {
             scrollX: true,
             scrollY: true,
             scrollCollapse: true,
-            ajax: url_prefix() + '/dashboard/?json=1',
+            ajax: dashboard_api_url + '?json=1',
+            initComplete: function() {
+                $.ajax({
+                    url: dashboard_api_url + '?refresh=1&status=1'
+                });
+            },
             order: [
                 [1, "asc"]
             ],

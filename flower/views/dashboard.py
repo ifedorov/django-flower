@@ -21,6 +21,7 @@ class DashboardView(BaseHandler):
     @method_decorator(login_required_admin)
     def get(self, request, *args, **kwargs):
         refresh = self.get_argument('refresh', default=False, type=bool)
+        status = self.get_argument('refresh_status', default=False, type=bool)
         json = self.get_argument('json', default=False, type=bool)
         app = self.settings.app
 
@@ -36,6 +37,8 @@ class DashboardView(BaseHandler):
                 ListWorkers.update_workers(settings=self.settings)
             except Exception as e:
                 logger.exception('Failed to update workers: %s', e)
+            if status:  # update workers only!
+                return self.write('ok')
 
         workers = {}
         for name, values in events.counter.items():
