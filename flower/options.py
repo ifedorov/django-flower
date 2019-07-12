@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 
+import threading
 import types
 
 from celery import current_app
@@ -10,6 +11,7 @@ from flower.events import Events
 
 
 class Options(object):
+    ns_local = threading.local()
 
     def __init__(self, namespace=None):
         self.namespace = namespace.upper()
@@ -24,7 +26,9 @@ class Options(object):
 
     @property
     def state(self):
-        return Events(self.app, self).get_remote_state()
+        if not hasattr(self.ns_local, "events"):
+            self.ns_local.events = Events(self.app, self)
+        return self.ns_local.events.get_remote_state()
 
 
 options = Options('flower')

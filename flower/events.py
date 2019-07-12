@@ -82,7 +82,7 @@ class RpcClient(object):
 
 class Events(object):
 
-    rpc_conn = None
+    rpc_client_connection = None
 
     def __init__(self, app, options):
         self.state = EventsState()
@@ -94,10 +94,10 @@ class Events(object):
         self.client = RpcClient(self.service)
 
     def get_remote_state(self):
-        if self.rpc_conn is None:
-            self.rpc_conn = self.client.connect(self.options.rpc_host,
-                                                port=self.options.rpc_port)
-        return self.rpc_conn.root.get_state()
+        if self.rpc_client_connection is None:
+            self.rpc_client_connection = self.client.connect(self.options.rpc_host,
+                                                             port=self.options.rpc_port)
+        return self.rpc_client_connection.root.get_state()
 
     def start_rpc(self):
         self.server = GeventServer(self.service,
@@ -108,6 +108,10 @@ class Events(object):
         self.server._listen()
         gevent.spawn(self.server.start)
         return self.server
+
+    def __del__(self):
+        if self.rpc_client_connection is not None:
+            self.rpc_client_connection.close()
 
     def run(self):
         self.start_rpc()
