@@ -93,11 +93,15 @@ class Events(object):
         self.service = classpartial(CeleryStateService, self.state)
         self.client = RpcClient(self.service)
 
-    def get_remote_state(self):
+    def get_remote_state(self, retry=False):
         if self.rpc_client_connection is None:
             self.rpc_client_connection = self.client.connect(self.options.rpc_host,
                                                              port=self.options.rpc_port)
-        return self.rpc_client_connection.root.get_state()
+        try:
+            return self.rpc_client_connection.root.get_state()
+        except EOFError:
+            if not retry:
+                return self.get_remote_state(retry=True)
 
     def start_rpc(self):
         self.server = GeventServer(self.service,
