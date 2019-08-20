@@ -94,7 +94,7 @@ class Events(object):
         self.client = RpcClient(self.service)
 
     def get_remote_state(self, retry=False):
-        if self.rpc_client_connection is None:
+        if self.rpc_client_connection is None or retry:
             self.rpc_client_connection = self.client.connect(self.options.rpc_host,
                                                              port=self.options.rpc_port)
         try:
