@@ -102,6 +102,8 @@ class Events(object):
         except EOFError:
             if not retry:
                 return self.get_remote_state(retry=True)
+            else:
+                raise
 
     def start_rpc(self):
         self.server = GeventServer(self.service,
