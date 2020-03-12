@@ -54,7 +54,7 @@ class ControlHandler(BaseHandler):
             if result is None:
                 logger.warning("'%s' inspect method failed", method)
                 continue
-            for worker, response in result.iteritems():
+            for worker, response in result.items():
                 if response is not None:
                     info = cls.worker_cache[worker]
                     info[method] = response
