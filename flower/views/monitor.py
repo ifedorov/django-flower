@@ -42,7 +42,7 @@ class SucceededTaskMonitor(BaseMonitor):
             task = state.tasks[task_key]
             if timestamp < task.timestamp and task.state == states.SUCCESS:
                 data[task.worker.hostname] += 1
-        for worker_key in state.workers.keys():
+        for worker_key in self._iteration(state.workers):
             if worker_key not in data:
                 data[worker_key] = 0
 
@@ -96,7 +96,7 @@ class FailedTaskMonitor(BaseMonitor):
             task = state.tasks[task_key]
             if timestamp < task.timestamp and task.state == states.FAILURE:
                 data[task.worker.hostname] += 1
-        for worker_key in state.workers.keys():
+        for worker_key in self._iteration(state.workers):
             if worker_key not in data:
                 data[worker_key] = 0
 
