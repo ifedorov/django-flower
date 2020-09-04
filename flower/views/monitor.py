@@ -3,22 +3,33 @@ from __future__ import absolute_import
 from collections import defaultdict
 
 from celery import states
-from flower.utils import login_required_admin
 from django.utils.decorators import method_decorator
 
-from ..views import BaseHandler
-from ..utils.broker import Broker
+from flower.utils import login_required_admin
 from ..api.control import ControlHandler
+from ..utils.broker import Broker
+from ..views import BaseHandler
 
 
-class Monitor(BaseHandler):
+class BaseMonitor(BaseHandler):
+    @staticmethod
+    def _iteration(obj):
+        """Do safe iteration"""
+        try:
+            for value in obj:
+                yield value
+        except RuntimeError:
+            pass
+
+
+class Monitor(BaseMonitor):
 
     @method_decorator(login_required_admin)
     def get(self, request):
         return self.render("flower/monitor.html")
 
 
-class SucceededTaskMonitor(BaseHandler):
+class SucceededTaskMonitor(BaseMonitor):
 
     @method_decorator(login_required_admin)
     def get(self, request):
@@ -27,7 +38,7 @@ class SucceededTaskMonitor(BaseHandler):
         state = self.settings.state
 
         data = defaultdict(int)
-        for task_key in state.tasks.keys():
+        for task_key in self._iteration(state.tasks):
             task = state.tasks[task_key]
             if timestamp < task.timestamp and task.state == states.SUCCESS:
                 data[task.worker.hostname] += 1
@@ -38,7 +49,7 @@ class SucceededTaskMonitor(BaseHandler):
         return self.write(data)
 
 
-class TimeToCompletionMonitor(BaseHandler):
+class TimeToCompletionMonitor(BaseMonitor):
 
     @method_decorator(login_required_admin)
     def get(self, request):
@@ -48,14 +59,14 @@ class TimeToCompletionMonitor(BaseHandler):
         execute_time = 0
         queue_time = 0
         num_tasks = 0
-        for task_key in state.tasks.keys():
+        for task_key in self._iteration(state.tasks):
             task = state.tasks[task_key]
             if timestamp < task.timestamp and task.state == states.SUCCESS:
                 # eta can make "time in queue" look really scary.
                 if task.eta is not None:
                     continue
 
-                if task.started is None or task.received is None or\
+                if task.started is None or task.received is None or \
                         task.succeeded is None:
                     continue
 
@@ -73,7 +84,7 @@ class TimeToCompletionMonitor(BaseHandler):
         return self.write(result)
 
 
-class FailedTaskMonitor(BaseHandler):
+class FailedTaskMonitor(BaseMonitor):
 
     @method_decorator(login_required_admin)
     def get(self, request):
@@ -81,7 +92,7 @@ class FailedTaskMonitor(BaseHandler):
         state = self.settings.state
 
         data = defaultdict(int)
-        for task_key in state.tasks.keys():
+        for task_key in self._iteration(state.tasks):
             task = state.tasks[task_key]
             if timestamp < task.timestamp and task.state == states.FAILURE:
                 data[task.worker.hostname] += 1
@@ -92,7 +103,7 @@ class FailedTaskMonitor(BaseHandler):
         return self.write(data)
 
 
-class BrokerMonitor(BaseHandler):
+class BrokerMonitor(BaseMonitor):
 
     @method_decorator(login_required_admin)
     def get(self, request):
