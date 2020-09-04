@@ -683,6 +683,9 @@ var flower = (function () {
             $.ajax({
                 type: 'GET',
                 url: url_prefix() + '/monitor/broker/',
+                data: {
+                    lastquery: current_unix_time()
+                },
                 success: function (data) {
                     broker_graph = create_graph(data, '-broker');
                     broker_graph.update();
@@ -690,7 +693,9 @@ var flower = (function () {
                     broker_graph.series.setTimeInterval(updateinterval);
                     setInterval(function () {
                         update_graph(broker_graph,
-                            url_prefix() + '/monitor/broker/');
+                            url_prefix() + '/monitor/broker/',
+                            fts);
+                        fts = current_unix_time();
                     }, updateinterval);
 
                 },
