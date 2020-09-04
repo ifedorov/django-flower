@@ -6,9 +6,9 @@ from celery import states
 from django.utils.decorators import method_decorator
 
 from flower.utils import login_required_admin
-from ..api.control import ControlHandler
-from ..utils.broker import Broker
-from ..views import BaseHandler
+from flower.api.control import ControlHandler
+from flower.utils.broker import Broker
+from flower.views import BaseHandler
 
 
 class BaseMonitor(BaseHandler):
