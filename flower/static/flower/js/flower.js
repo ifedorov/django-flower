@@ -453,7 +453,9 @@ var flower = (function () {
                 });
             }
         }
-
+        if (seriesData.length == 0) {
+            seriesData.push({name: "Temporarily unavailable (empty)"})
+        }
         palette = new Rickshaw.Color.Palette({
             scheme: 'colorwheel'
         });
