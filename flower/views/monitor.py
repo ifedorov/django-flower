@@ -13,10 +13,10 @@ from flower.views import BaseHandler
 
 class BaseMonitor(BaseHandler):
     @staticmethod
-    def _iteration(obj):
+    def _iter(iterable):
         """Do safe iteration"""
         try:
-            for value in obj:
+            for value in iterable:
                 yield value
         except RuntimeError:
             pass
@@ -38,11 +38,10 @@ class SucceededTaskMonitor(BaseMonitor):
         state = self.settings.state
 
         data = defaultdict(int)
-        for task_key in self._iteration(state.tasks):
-            task = state.tasks[task_key]
+        for _, task in state.itertasks():
             if timestamp < task.timestamp and task.state == states.SUCCESS:
                 data[task.worker.hostname] += 1
-        for worker_key in self._iteration(state.workers):
+        for worker_key in self._iter(state.workers):
             if worker_key not in data:
                 data[worker_key] = 0
 
@@ -59,8 +58,7 @@ class TimeToCompletionMonitor(BaseMonitor):
         execute_time = 0
         queue_time = 0
         num_tasks = 0
-        for task_key in self._iteration(state.tasks):
-            task = state.tasks[task_key]
+        for _, task in state.itertasks():
             if timestamp < task.timestamp and task.state == states.SUCCESS:
                 # eta can make "time in queue" look really scary.
                 if task.eta is not None:
@@ -92,11 +90,10 @@ class FailedTaskMonitor(BaseMonitor):
         state = self.settings.state
 
         data = defaultdict(int)
-        for task_key in self._iteration(state.tasks):
-            task = state.tasks[task_key]
+        for _, task in state.itertasks():
             if timestamp < task.timestamp and task.state == states.FAILURE:
                 data[task.worker.hostname] += 1
-        for worker_key in self._iteration(state.workers):
+        for worker_key in self._iter(state.workers):
             if worker_key not in data:
                 data[worker_key] = 0
 
