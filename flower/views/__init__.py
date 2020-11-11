@@ -113,7 +113,7 @@ class BaseHandler(View):
 
     def get_argument(self, name, default=None, strip=True, type=None):
         arg = getattr(self.request, self.request.method).get(name, default)
-        if isinstance(arg, basestring) and strip:
+        if isinstance(arg, str) and strip:
             arg = arg.strip()
         if type is not None:
             try:
